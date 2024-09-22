@@ -10,7 +10,7 @@ namespace FoodShop.API.Services
                 new CookieOptions
                 {
                     Expires = DateTimeOffset.Now.AddMinutes(1),
-                    HttpOnly = true,
+                    HttpOnly = false,
                     Secure = true,
                     IsEssential = true,
                     SameSite = SameSiteMode.None,
