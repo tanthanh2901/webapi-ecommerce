@@ -61,17 +61,18 @@ namespace FoodShop.Infrastructure.Repositories
         {
             var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
 
-            AppUser user = new AppUser();
+            AppUser user = null;
+            //AppUser user = new AppUser();
             if (result.Succeeded)
             {
                 logger.LogInformation("login success");
                 user = await userManager.FindByEmailAsync(model.Email);
             }
-            if (result.RequiresTwoFactor)
+            else if (result.RequiresTwoFactor)
             {
                 // Handle two-factor authentication case
             }
-            if (result.IsLockedOut)
+            else if(result.IsLockedOut)
             {
                 // Handle lockout scenario
             }
@@ -149,7 +150,7 @@ namespace FoodShop.Infrastructure.Repositories
                 _configuration["Jwt:Audience"],
                 claimsForToken,
                 DateTime.UtcNow,
-                DateTime.UtcNow.AddMinutes(1),
+                DateTime.UtcNow.AddHours(1),
                 signingCredentials);
 
             var accessToken = new JwtSecurityTokenHandler()

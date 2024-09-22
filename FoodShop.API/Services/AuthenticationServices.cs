@@ -9,8 +9,8 @@ namespace FoodShop.API.Services
             httpContext.Response.Cookies.Append("accessToken", tokenDto.accessToken,
                 new CookieOptions
                 {
-                    Expires = DateTimeOffset.Now.AddMinutes(1),
-                    HttpOnly = false,
+                    Expires = DateTimeOffset.Now.AddHours(1),
+                    HttpOnly = true,
                     Secure = true,
                     IsEssential = true,
                     SameSite = SameSiteMode.None,

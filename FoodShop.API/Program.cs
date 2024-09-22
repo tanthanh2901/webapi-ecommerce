@@ -60,12 +60,20 @@ builder.Services.AddAuthentication(options =>
 
     options.Events = new JwtBearerEvents
     {
-        OnMessageReceived = ctx =>
+        //OnMessageReceived = ctx =>
+        //{
+        //    ctx.Request.Cookies.TryGetValue("accessToken", out var accessToken);
+        //    if (!string.IsNullOrEmpty(accessToken))
+        //    {
+        //        ctx.Token = accessToken;
+        //    }
+        //    return Task.CompletedTask;
+        //}
+        OnMessageReceived = context =>
         {
-            ctx.Request.Cookies.TryGetValue("accessToken", out var accessToken);
-            if (!string.IsNullOrEmpty(accessToken))
+            if (context.Request.Cookies.ContainsKey("accessToken"))
             {
-                ctx.Token = accessToken;
+                context.Token = context.Request.Cookies["accessToken"];
             }
             return Task.CompletedTask;
         }
@@ -102,8 +110,7 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-app.UseCors("AllowReactApp");
-// Configure the HTTP request pipeline.
+//app.UseCors("AllowReactApp");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -114,6 +121,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseRouting();
+app.UseCors("AllowReactApp");
 
 app.UseSession();
 app.UseAuthorization();
