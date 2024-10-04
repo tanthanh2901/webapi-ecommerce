@@ -13,5 +13,6 @@ namespace FoodShop.Application.Contract.Infrastructure
     public interface IJwtProvider
     {
         Task<TokenDto> Generate(AppUser user);
+        Task<TokenDto> RefreshToken(TokenDto tokenDto);
     }
 }

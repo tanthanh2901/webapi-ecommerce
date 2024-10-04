@@ -1,9 +1,6 @@
-﻿using FoodShop.Application.Entities;
-using FoodShop.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
+﻿using FoodShop.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace FoodShop.Persistence
 {
@@ -48,10 +45,30 @@ namespace FoodShop.Persistence
                 .WithMany(c => c.Items)
                 .HasForeignKey(ci => ci.CartId);
 
-            //modelBuilder.Entity<CartItem>()
-            //    .HasOne(ci => ci.Product)
-            //    .WithMany()
-            //    .HasForeignKey(ci => ci.ProductId);
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.OrderDetail)
+                .WithOne(od => od.Order)
+                .HasForeignKey(od => od.OrderId);
+
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Product)
+                .WithMany(p => p.OrderDetails)
+                .HasForeignKey(od => od.ProductId);
+
+            modelBuilder.Entity<OrderDetail>()
+            .HasOne(od => od.Order)
+            .WithMany(o => o.OrderDetail)
+            .HasForeignKey(od => od.OrderId);
+
+            modelBuilder.Entity<Cart>()
+               .HasMany(c => c.Items)
+               .WithOne(ci => ci.Cart)
+               .HasForeignKey(ci => ci.CartId);
+
+            modelBuilder.Entity<CartItem>()
+                .HasOne(ci => ci.Product)
+                .WithMany()
+                .HasForeignKey(ci => ci.ProductId);
 
         }
     }

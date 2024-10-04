@@ -1,4 +1,4 @@
-﻿using FoodShop.Application.Entities;
+﻿using FoodShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
@@ -13,22 +13,18 @@ namespace FoodShop.Domain.Entities
     public class OrderDetail
     {
         [Key]
-        public int OrderItemId { get; set; }
+        public int OrderDetailId { get; set; }
 
         [ForeignKey("Order")]
         public int OrderId { get; set; }
-
+        public Order Order { get; set; }
         [ForeignKey("Product")]
         public int ProductId { get; set; }
-
+        public Product Product { get; set; }
         public int Quantity { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal UnitPrice { get; set; }
-
-        public Order Order { get; set; }
-
-        public Product Product { get; set; }
         public decimal TotalPrice => UnitPrice * Quantity;
     }
 }

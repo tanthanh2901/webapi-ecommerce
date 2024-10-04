@@ -1,5 +1,4 @@
-﻿using FoodShop.Application.Entities;
-using FoodShop.Domain.Entities;
+﻿using FoodShop.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

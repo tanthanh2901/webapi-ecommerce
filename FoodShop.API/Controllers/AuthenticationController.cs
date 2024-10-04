@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using FoodShop.Domain.Entities;
 using FoodShop.Application.Contract.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using FoodShop.Application.Dto;
 
 namespace FoodShop.API.Controllers
 {
@@ -44,7 +45,16 @@ namespace FoodShop.API.Controllers
                 var tokenDto = await mediatR.Send(new LoginCommand(loginModel));
                 authenticationService.SetTokenCookie(tokenDto, HttpContext);
 
-                return Ok();
+                var csrfToken = Guid.NewGuid().ToString(); // Generate a random token
+
+                Response.Cookies.Append("XSRF-TOKEN", csrfToken, new CookieOptions
+                {
+                    HttpOnly = false,  // Accessible via JavaScript
+                    Secure = true,     // Ensure HTTPS is used
+                    SameSite = SameSiteMode.Strict
+                });
+
+                return Ok(new { accessToken = tokenDto.accessToken });
               
             }
 
@@ -77,25 +87,9 @@ namespace FoodShop.API.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken()
+        public async Task<IActionResult> RefreshToken(TokenDto tokenDto)
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                return Unauthorized("Refresh token not found.");
-            }
-
-            // Validate the refresh token
-            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshToken == refreshToken);
-
-            if (user == null || user.RefreshTokenExpiryTime <= DateTime.Now)
-            {
-                return Unauthorized("Invalid or expired refresh token.");
-            }
-
-            // Generate new access and refresh tokens
-            var newTokens = await jwtProvider.Generate(user);
+            var newTokens = await jwtProvider.RefreshToken(tokenDto);
 
             // Set the new tokens in cookies
             authenticationService.SetTokenCookie(newTokens, HttpContext);

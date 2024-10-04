@@ -24,7 +24,7 @@ namespace FoodShop.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("FoodShop.Application.Entities.Category", b =>
+            modelBuilder.Entity("FoodShop.Domain.Entities.Category", b =>
                 {
                     b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
@@ -47,7 +47,7 @@ namespace FoodShop.Persistence.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("FoodShop.Application.Entities.Product", b =>
+            modelBuilder.Entity("FoodShop.Domain.Entities.Product", b =>
                 {
                     b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
@@ -410,9 +410,9 @@ namespace FoodShop.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("FoodShop.Application.Entities.Product", b =>
+            modelBuilder.Entity("FoodShop.Domain.Entities.Product", b =>
                 {
-                    b.HasOne("FoodShop.Application.Entities.Category", "Category")
+                    b.HasOne("FoodShop.Domain.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -440,7 +440,7 @@ namespace FoodShop.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FoodShop.Application.Entities.Product", "Product")
+                    b.HasOne("FoodShop.Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -470,7 +470,7 @@ namespace FoodShop.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FoodShop.Application.Entities.Product", "Product")
+                    b.HasOne("FoodShop.Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -532,7 +532,7 @@ namespace FoodShop.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("FoodShop.Application.Entities.Category", b =>
+            modelBuilder.Entity("FoodShop.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
                 });

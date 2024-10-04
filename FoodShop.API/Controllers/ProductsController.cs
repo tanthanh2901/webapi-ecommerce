@@ -1,9 +1,9 @@
-﻿using FoodShop.Application.Entities;
-using FoodShop.Application.Feature.Products.Queries.GetAllProducts;
+﻿using FoodShop.Application.Feature.Products.Queries.GetAllProducts;
 using FoodShop.Application.Feature.Products.Queries.GetProductDetails;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FoodShop.Application.Contract.Persistence;
+using FoodShop.Domain.Entities;
 
 namespace FoodShop.API.Controllers
 {
@@ -44,7 +44,7 @@ namespace FoodShop.API.Controllers
 
             var products = await _productRepository.SearchProduct(query);
 
-            if (products == null || products.Count == 0)
+            if (products == null)
             {
                 return NotFound("No products found matching the search criteria.");
             }

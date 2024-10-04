@@ -1,5 +1,5 @@
 ﻿using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Entities;
+using FoodShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

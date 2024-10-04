@@ -1,5 +1,4 @@
 ﻿using FoodShop.Application.Dto;
-using FoodShop.Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -7,9 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FoodShop.Application.Feature.Products.Queries.GetAllProducts
+namespace FoodShop.Application.Feature.Order.GetAllOrders
 {
-    public class GetAllProductQuery : IRequest<List<ProductListDto>>
+    public class GetAllOrdersQuery : IRequest<List<OrderDto>>
     {
+        public int UserId;
     }
 }

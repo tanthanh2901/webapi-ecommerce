@@ -1,12 +1,7 @@
 ﻿using AutoMapper;
 using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Entities;
+using FoodShop.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FoodShop.Application.Feature.Categories.Commands.CreateCategory
 {

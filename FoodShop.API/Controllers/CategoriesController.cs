@@ -1,4 +1,4 @@
-﻿using FoodShop.Application.Entities;
+﻿using FoodShop.Domain.Entities;
 using FoodShop.Application.Feature.Categories.Commands.CreateCategory;
 using FoodShop.Application.Feature.Categories.Commands.DeleteCategory;
 using FoodShop.Application.Feature.Categories.Commands.UpdateCategory;

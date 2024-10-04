@@ -1,6 +1,6 @@
 ﻿using FoodShop.API.Services;
 using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Entities;
+using FoodShop.Domain.Entities;
 using FoodShop.Application.Feature.Categories.Commands.CreateCategory;
 using FoodShop.Application.Feature.Categories.Commands.DeleteCategory;
 using FoodShop.Application.Feature.Categories.Commands.UpdateCategory;
@@ -13,6 +13,8 @@ using FoodShop.Application.Feature.Products.Queries.GetAllProducts;
 using FoodShop.Application.Feature.Products.Queries.GetProductDetails;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using FoodShop.Persistence.Repositories;
+using FoodShop.Domain.Enum;
 
 namespace FoodShop.API.Controllers
 {
@@ -24,12 +26,15 @@ namespace FoodShop.API.Controllers
         private readonly RoleServices _roleService;
         private readonly IMediator mediatR;
         private readonly IProductRepository _productRepository;
+        private readonly IOrderRepository orderRepository;
 
-        public AdminController(RoleServices roleService, IMediator mediatR, IProductRepository productRepository)
+
+        public AdminController(RoleServices roleService, IMediator mediatR, IProductRepository productRepository, IOrderRepository orderRepository)
         {
             _roleService = roleService;
             this.mediatR = mediatR;
             _productRepository = productRepository;
+            this.orderRepository = orderRepository;
         }
 
         [HttpGet]
@@ -168,6 +173,13 @@ namespace FoodShop.API.Controllers
             var deleteCategoryCommand = new DeleteCategoryCommand() { CategoryId = id };
             await mediatR.Send(deleteCategoryCommand);
             return NoContent();
+        }
+
+        [HttpPost("orders/update")]
+        public async Task<ActionResult<bool>> UpdateOrderStatus(int orderId, OrderStatus status)
+        {
+            var update = orderRepository.UpdateOrderStatusAsync(orderId, status);
+            return Ok(update);
         }
 
     }

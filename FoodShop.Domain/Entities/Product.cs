@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FoodShop.Application.Entities
+namespace FoodShop.Domain.Entities
 {
     public class Product : AuditableEntity
     {
@@ -33,6 +33,6 @@ namespace FoodShop.Application.Entities
 
         public Category Category { get; set; }
 
-        
+        public ICollection<OrderDetail> OrderDetails { get; set; }
     }
 }

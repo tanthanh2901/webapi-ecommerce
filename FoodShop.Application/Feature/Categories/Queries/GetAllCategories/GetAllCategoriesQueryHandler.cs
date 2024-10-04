@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using FoodShop.Application.Contract.Persistence;
 using FoodShop.Application.Dto;
-using FoodShop.Application.Entities;
+using FoodShop.Domain.Entities;
 using MediatR;
 using System;
 using System.Collections.Generic;

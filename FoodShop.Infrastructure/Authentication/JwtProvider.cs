@@ -99,5 +99,19 @@ namespace FoodShop.Infrastructure.Authentication
 
             return principal;
         }
+
+        public async Task<TokenDto> RefreshToken(TokenDto tokenDto)
+        {
+            var principal = GetClaimsPrincipalFromExpireToken(tokenDto.accessToken);
+            var user = await _userManager.FindByNameAsync(principal.Identity.Name);
+            if (user == null || user.RefreshToken != tokenDto.refreshToken || 
+                user.RefreshTokenExpiryTime < DateTime.Now)
+            {
+                throw new Exception("Invalid or expired refresh token.");
+            }
+
+            return await Generate(user);
+        }
+
     }
 }

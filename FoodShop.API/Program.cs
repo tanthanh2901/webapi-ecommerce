@@ -27,6 +27,12 @@ builder.Services
     .AddPersistenceServices(builder.Configuration)
     .AddInfrastructureServices();
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "X-CSRF-TOKEN"; // Customize token name
+    options.HeaderName = "X-CSRF-TOKEN";  // Set the header that will carry the token
+});
+
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:SecretForKey"]);
 
 
@@ -34,7 +40,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         builder => builder
-            .WithOrigins("http://localhost:5173") // React app URL
+            .WithOrigins("http://localhost:5173", "https://localhost:44493") // React app URL
             .AllowAnyMethod()                     // Allow all HTTP methods
             .AllowAnyHeader()                     // Allow any header
             .AllowCredentials());                 // Allow credentials if necessary

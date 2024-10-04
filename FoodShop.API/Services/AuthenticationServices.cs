@@ -9,11 +9,11 @@ namespace FoodShop.API.Services
             httpContext.Response.Cookies.Append("accessToken", tokenDto.accessToken,
                 new CookieOptions
                 {
-                    Expires = DateTimeOffset.Now.AddHours(1),
                     HttpOnly = true,
+                    Expires = DateTimeOffset.Now.AddHours(1),
                     Secure = true,
                     IsEssential = true,
-                    SameSite = SameSiteMode.None,
+                    SameSite = SameSiteMode.Strict,
                 });
             httpContext.Response.Cookies.Append("refreshToken", tokenDto.refreshToken,
                 new CookieOptions

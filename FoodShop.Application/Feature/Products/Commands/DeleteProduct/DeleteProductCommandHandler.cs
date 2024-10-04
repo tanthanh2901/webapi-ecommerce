@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Entities;
+using FoodShop.Domain.Entities;
 using FoodShop.Application.Feature.Products.Commands.DeleteProduct;
 using MediatR;
 

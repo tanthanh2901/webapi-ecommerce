@@ -1,15 +1,9 @@
 ﻿using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Entities;
-using FoodShop.Application.Feature.Cart.Commands.AddToCart;
-using FoodShop.Application.Feature.Cart.Queries.GetCart;
 using FoodShop.Domain.Entities;
-using FoodShop.Persistence.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using SendGrid.Helpers.Errors.Model;
 
 namespace FoodShop.API.Controllers
 {
@@ -105,7 +99,6 @@ namespace FoodShop.API.Controllers
         private async Task<int> GetUserId()
         {
             var user = await _userManager.GetUserAsync(User);
-
             return (int)(user?.Id);
         }
 
@@ -121,6 +114,7 @@ namespace FoodShop.API.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetCart()
+        
         {
             var userId = await GetUserId();
             if (userId == null) return Unauthorized();

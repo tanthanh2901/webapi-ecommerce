@@ -1,4 +1,7 @@
 ﻿using FoodShop.Domain.Entities;
+using FoodShop.Domain.Enum;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +18,6 @@ namespace FoodShop.Persistence.Repositories
         {
             this.dbContext = dbContext;
         }
-
         public async Task<Order> CreateOrderAsync(Order order)
         {
             await dbContext.Orders.AddAsync(order);
@@ -27,14 +29,39 @@ namespace FoodShop.Persistence.Repositories
             return order;
         }
 
-        public Task<Order> GetOrderByIdAsync(int orderId)
+        public async Task<List<Order>> GetAllOrders(int userId)
         {
-            throw new NotImplementedException();
+            //return await dbContext.Orders
+            //    .Include(o => o.OrderDetail)
+            //        .ThenInclude(od => od.Product)
+            //    .Where(o => o.UserId == userId).ToListAsync();
+            return await dbContext.Orders
+               .Where(o => o.UserId == userId)
+               .Include(o => o.OrderDetail) // Ensure OrderDetails are included
+               .ToListAsync();
         }
 
-        public Task<bool> UpdateOrderStatusAsync(int orderId, string status)
+        public async Task<Order> GetOrderByIdAsync(int orderId)
         {
-            throw new NotImplementedException();
+            return await dbContext.Orders
+                .Include(o => o.OrderDetail)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+        }
+
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus status)
+        {
+            var order = await dbContext.Orders
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId);
+            if (order == null)
+            {
+                return false;
+            }
+
+            order.Status = status;
+            dbContext.Orders.Update(order);
+            await dbContext.SaveChangesAsync();
+            return true;
+
         }
     }
 }

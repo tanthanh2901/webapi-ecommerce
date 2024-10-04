@@ -1,12 +1,7 @@
 ﻿using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Entities;
 using FoodShop.Domain.Entities;
-using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System.Security.Claims;
-using System.Text;
 
 namespace FoodShop.Persistence.Repositories
 {
