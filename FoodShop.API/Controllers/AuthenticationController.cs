@@ -49,8 +49,8 @@ namespace FoodShop.API.Controllers
 
                 Response.Cookies.Append("XSRF-TOKEN", csrfToken, new CookieOptions
                 {
-                    HttpOnly = false,  // Accessible via JavaScript
-                    Secure = true,     // Ensure HTTPS is used
+                    HttpOnly = true,  
+                    Secure = true,   
                     SameSite = SameSiteMode.Strict
                 });
 

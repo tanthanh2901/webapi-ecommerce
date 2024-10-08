@@ -4,6 +4,7 @@ using FoodShop.Domain.Entities;
 using FoodShop.Infrastructure;
 using FoodShop.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -102,12 +103,16 @@ builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<RoleServices>();
 builder.Services.AddScoped<AuthenticationServices>();
 
-builder.Services.AddControllers()
-     .AddJsonOptions(options =>
-     {
-         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-         options.JsonSerializerOptions.WriteIndented = true;
-     });
+builder.Services.AddControllers();
+     //.AddJsonOptions(options =>
+     //{
+     //    //options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+     //    //options.JsonSerializerOptions.WriteIndented = true;
+
+     //    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+     //    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+     //});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -116,6 +121,7 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+app.UseCors("AllowReactApp");
 //app.UseCors("AllowReactApp");
 if (app.Environment.IsDevelopment())
 {
@@ -127,7 +133,6 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseRouting();
-app.UseCors("AllowReactApp");
 
 app.UseSession();
 app.UseAuthorization();

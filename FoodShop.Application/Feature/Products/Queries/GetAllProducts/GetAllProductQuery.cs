@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 
 namespace FoodShop.Application.Feature.Products.Queries.GetAllProducts
 {
-    public class GetAllProductQuery : IRequest<List<ProductListDto>>
+    public class GetAllProductQuery : IRequest<PaginatedResult<List<ProductListDto>>>
     {
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
     }
 }

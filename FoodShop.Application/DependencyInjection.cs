@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FoodShop.Application.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FoodShop.Application
 {
@@ -9,7 +10,7 @@ namespace FoodShop.Application
             var assembly = AppDomain.CurrentDomain.GetAssemblies();
             services.AddAutoMapper(assembly);
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assembly));
-
+            services.AddScoped<RoleServices>();
             return services;
         }
     }
