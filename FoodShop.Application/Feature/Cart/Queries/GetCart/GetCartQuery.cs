@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FoodShop.Application.Feature.Cart.Queries.GetCart
 {
-    public class GetCartQuery : IRequest<CartDto> 
+    public class GetCartQuery : IRequest<List<CartItemDto>> 
     {
         public int UserId;
     }

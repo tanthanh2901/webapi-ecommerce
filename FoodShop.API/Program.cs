@@ -99,7 +99,6 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<RoleServices>();
 builder.Services.AddScoped<AuthenticationServices>();
 

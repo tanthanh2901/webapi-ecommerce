@@ -3,18 +3,11 @@ using FoodShop.Application.Feature.Account.Models;
 using FoodShop.Domain.Entities;
 using FoodShop.Persistence;
 using FoodShop.Persistence.Repositories;
-using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using System.Security.Policy;
-using System.Text.Encodings.Web;
 using System.Text;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using FoodShop.Application.Feature.Account.Register;
 using FoodShop.Application.Dto;
-using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -129,6 +122,11 @@ namespace FoodShop.Infrastructure.Repositories
 
         public TokenDto Generate(AppUser user)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user), "User object cannot be null");
+            }
+
             var securityKey = new SymmetricSecurityKey(
                 Encoding.ASCII.GetBytes(_configuration["Jwt:SecretForKey"]));
             var signingCredentials = new SigningCredentials(
@@ -140,9 +138,7 @@ namespace FoodShop.Infrastructure.Repositories
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
 
                 new Claim("name", user.UserName), // User's full name
-                //new Claim("role", user), // User's role
                 new Claim("userId", user.Id.ToString()), // User ID
-                //new Claim("cartId", user.Cart?.CartId.ToString() ?? string.Empty)
             };
 
             var jwtSecurityToken = new JwtSecurityToken(

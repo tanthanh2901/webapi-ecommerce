@@ -4,11 +4,12 @@ namespace FoodShop.Application.Dto
 {
     public class UserDto
     {
-        public int Id { get; set; }
-        //public CartDto Cart { get; set; }
-        //public int CartId { get; set; }
+        public string Email { get; set; }
         public string Username { get; set; }
-        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        public string ShipName { get; set; }
+        public string ShipAddress { get; set; }
+        public string PhoneNumber { get; set; }
+
 
     }
 }

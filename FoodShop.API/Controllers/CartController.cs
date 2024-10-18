@@ -1,4 +1,6 @@
 ﻿using FoodShop.Application.Contract.Persistence;
+using FoodShop.Application.Feature.Cart.Commands.UpdateQuantityCartItem;
+using FoodShop.Application.Feature.Cart.Queries.GetCart;
 using FoodShop.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -13,19 +15,15 @@ namespace FoodShop.API.Controllers
     public class CartController : Controller
     {
         private readonly ICartRepository cartRepository;
-        private readonly IProductRepository productRepository;
         private readonly IMediator mediator; 
-        private readonly CartService _cartService;
         private readonly UserManager<AppUser> _userManager;
         private readonly ICheckoutService _checkoutService;
 
-        public CartController(ICartRepository cartRepository, IMediator mediator, CartService cartService, UserManager<AppUser> userManager, IProductRepository productRepository, ICheckoutService checkoutService)
+        public CartController(ICartRepository cartRepository, IMediator mediator, UserManager<AppUser> userManager, ICheckoutService checkoutService)
         {
             this.cartRepository = cartRepository;
             this.mediator = mediator;
-            _cartService = cartService;
             _userManager = userManager;
-            this.productRepository = productRepository;
             _checkoutService = checkoutService;
         }
 
@@ -119,17 +117,29 @@ namespace FoodShop.API.Controllers
             var userId = await GetUserId();
             if (userId == null) return Unauthorized();
 
-            var cartItems = await cartRepository.GetCartItems(userId);
+            //var cartItems = await cartRepository.GetCartItems(userId);
+            var cartItems = await mediator.Send(new GetCartQuery() { UserId = userId });
             return Ok(cartItems);
         }
 
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateCartItem(int productId, int quantity)
+        [HttpGet("GetNumberOfCartItem")]
+        public async Task<IActionResult> GetNumberOfCartItem()
         {
             var userId = await GetUserId();
             if (userId == null) return Unauthorized();
 
-            await cartRepository.UpdateCartItem(userId, productId, quantity);
+            var number = await cartRepository.GetNumberOfCartItem(userId);
+            return Ok(number);
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateCartItem(int cartItemId, int quantity)
+        {
+            var userId = await GetUserId();
+            if (userId == null) return Unauthorized();
+
+            await cartRepository.UpdateCartItem(userId, cartItemId, quantity);
+
             return Ok();
         }
 

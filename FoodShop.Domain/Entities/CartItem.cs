@@ -13,5 +13,6 @@ namespace FoodShop.Domain.Entities
         public int ProductId { get; set; } // ID of the product
         public Product Product { get; set; }
         public int Quantity { get; set; }
+        public decimal Price { get; set; }
     }
 }

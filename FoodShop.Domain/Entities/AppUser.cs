@@ -21,5 +21,8 @@ namespace FoodShop.Domain.Entities
         public string RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
 
+        public string ShipName { get; set; } = string.Empty;
+        public string ShipAddress { get; set; } = string.Empty;
+
     }
 }

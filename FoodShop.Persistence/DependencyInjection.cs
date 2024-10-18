@@ -23,6 +23,7 @@ namespace FoodShop.Persistence
             services.AddScoped<ICheckoutService, CheckoutService>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddLogging();
             return services;
         }

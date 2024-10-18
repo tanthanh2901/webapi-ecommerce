@@ -1,5 +1,6 @@
 ﻿using FoodShop.Application.Contract.Persistence;
 using FoodShop.Domain.Entities;
+using FoodShop.Domain.Enum;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,14 +43,6 @@ namespace FoodShop.Persistence.Repositories
 
         public async Task<List<CartItem>> GetCartItems(int userId)
         {
-            //var userID = GetUserId();
-
-            //var cart = await dbContext.Carts
-            //     .Include(c => c.Items)
-            //     .FirstOrDefaultAsync(c => c.UserId == userId);
-
-            //return (List<CartItem>)(cart?.Items ?? new List<CartItem>());
-
             var cart = await dbContext.Carts
                  .Include(c => c.Items)
                  .ThenInclude(ci => ci.Product) // Include Product in the CartItem
@@ -79,7 +72,7 @@ namespace FoodShop.Persistence.Repositories
             //var total = cart.Items.Select(c => c.Product.Price * c.Quantity).Sum();
             if (cartItem == null)
             {
-                cartItem = new CartItem { ProductId = productId, Quantity = quantity, Product = product };
+                cartItem = new CartItem { ProductId = productId, Quantity = quantity, Product = product, Price =  product.Price};
                 cart.Items.Add(cartItem);
             }
             else
@@ -91,16 +84,19 @@ namespace FoodShop.Persistence.Repositories
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task UpdateCartItem(int userId, int productId, int quantity)
+        public async Task UpdateCartItem(int userId, int cartItemId, int quantity)
         {
             var cart = await dbContext.Carts
                        .Include(c => c.Items)
                        .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            var cartItem = cart?.Items.FirstOrDefault(ci => ci.ProductId == productId);
-            if (cartItem != null)
+            var cartItems = await this.GetCartItems(userId);
+            var item = cartItems.FirstOrDefault(ci => ci.CartItemId == cartItemId);
+
+            var cartItem = cart?.Items.FirstOrDefault(ci => ci.CartItemId == cartItemId);
+            if (item != null)
             {
-                cartItem.Quantity = quantity;
+                item.Quantity = quantity;
                 await dbContext.SaveChangesAsync();
             }
         }
@@ -129,16 +125,34 @@ namespace FoodShop.Persistence.Repositories
             return total;
         }
 
+        public async Task<int> GetNumberOfCartItem(int userId)
+        {
+            var cart = await dbContext.Carts
+                 .Include(c => c.Items)
+                 .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (cart == null || cart.Items == null)
+            {
+                return 0; // Return 0 if the cart or items are not found
+            }
+
+            var number = cart.Items.Sum(c => c.Quantity);
+            return number;
+        }
+
         public async Task CreateOrderAsync(int userID, List<CartItem> cartProducts)
         {
+            var user = dbContext.AppUsers.FirstOrDefault(u => u.Id == userID);
+
             var order = new Order
             {
                 UserId = userID,
                 OrderDate = DateTime.UtcNow,
-                ShipName = "John Doe",
-                ShipAddress = "123 Main St",
+                ShipName = user.ShipName,
+                ShipAddress = user.ShipAddress,
+                PhoneNumber = user.PhoneNumber,
                 TotalAmount = cartProducts.Sum(p => p.Quantity * p.Product.Price),
-                //Status = "Pending",
+                Status = OrderStatus.Pending,
                 OrderDetail = cartProducts.Select(p => new OrderDetail
                 {
                     ProductId = p.ProductId,

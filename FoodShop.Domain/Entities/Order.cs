@@ -19,6 +19,7 @@ namespace FoodShop.Domain.Entities
         public decimal TotalAmount { get; set; }
         public string ShipName { get; set; }
         public string ShipAddress { get; set; }
+        public string PhoneNumber { get; set; }
 
         public AppUser User { get; set; }
 
