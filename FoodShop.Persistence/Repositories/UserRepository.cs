@@ -40,6 +40,8 @@ namespace FoodShop.Persistence.Repositories
            return new AppUser
             {
                 UserName = appUser.UserName,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
                 Email = appUser.Email,
                 ShipName = appUser.ShipName,
                 ShipAddress = appUser.ShipAddress,
@@ -58,6 +60,8 @@ namespace FoodShop.Persistence.Repositories
             }
             else
             {
+                appUser.FirstName = model.FirstName;
+                appUser.LastName = model.LastName;  
                 appUser.ShipName = model.ShipName;
                 appUser.ShipAddress = model.ShipAddress;
                 appUser.PhoneNumber = model.PhoneNumber;

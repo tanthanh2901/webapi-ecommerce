@@ -15,6 +15,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FoodShop.Persistence.Repositories;
 using FoodShop.Domain.Enum;
+using Microsoft.AspNetCore.Identity;
+using FoodShop.Application.Feature.User.Model;
 
 namespace FoodShop.API.Controllers
 {
@@ -27,14 +29,16 @@ namespace FoodShop.API.Controllers
         private readonly IMediator mediatR;
         private readonly IProductRepository _productRepository;
         private readonly IOrderRepository orderRepository;
+        private readonly IAdminRepository adminRepository;
 
 
-        public AdminController(RoleServices roleService, IMediator mediatR, IProductRepository productRepository, IOrderRepository orderRepository)
+        public AdminController(RoleServices roleService, IMediator mediatR, IProductRepository productRepository, IOrderRepository orderRepository, IAdminRepository adminRepository)
         {
             _roleService = roleService;
             this.mediatR = mediatR;
             _productRepository = productRepository;
             this.orderRepository = orderRepository;
+            this.adminRepository = adminRepository;
         }
 
         [HttpGet]
@@ -178,9 +182,72 @@ namespace FoodShop.API.Controllers
         [HttpPost("orders/update")]
         public async Task<ActionResult<bool>> UpdateOrderStatus(int orderId, OrderStatus status)
         {
-            var update = orderRepository.UpdateOrderStatusAsync(orderId, status);
+            var update = await orderRepository.UpdateOrderStatusAsync(orderId, status);
             return Ok(update);
         }
+
+        [HttpGet("users")]
+        public async Task<ActionResult<List<AppUser>>> GetAllUsers()
+        {
+            var users = await adminRepository.GetAllUsers();
+            if (users == null || users.Count == 0)
+            {
+                return NotFound("No users found.");
+            }
+            return Ok(users);
+        }
+
+        [HttpGet("users/{userId}")]
+        public async Task<ActionResult<AppUser>> GetUserDetails(int userId)
+        {
+            var user = await adminRepository.GetUserInfo(userId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+            return Ok(user);
+        }
+
+        [HttpDelete("users/delete/{userId}")]
+        public async Task<IActionResult> DeleteUser(int userId)
+        {
+            var success = await adminRepository.DeleteUser(userId); // Assuming _userService contains DeleteUser method.
+
+            if (success)
+            {
+                return Ok(new { Message = "User deleted successfully." });
+            }
+
+            return BadRequest(new { Message = "Failed to delete user." });
+        }
+
+
+        [HttpPut("users/update/{userId}")]
+        public async Task<IActionResult> UpdateUser(int userId, [FromBody] UpdateUserInfoViewModel model)
+        {
+            var success = await adminRepository.UpdateUserInfo(userId, model);
+
+            if (success)
+            {
+                return Ok(new { Message = "User updated successfully." });
+            }
+
+            return BadRequest(new { Message = "Failed to update user." });
+        }
+
+        [HttpPost("users/{userId}/roles/assign")]
+        public async Task<IActionResult> AssignRoleToUser(int userId, [FromBody] string role)
+        {
+            var success = await adminRepository.AssignRoleToUser(userId, role); // Assuming _userService is injected and contains AssignRoleToUser method.
+
+            if (success)
+            {
+                return Ok(new { Message = $"Role '{role}' assigned to user successfully." });
+            }
+
+            return BadRequest(new { Message = "Failed to assign role to user." });
+        }
+
 
     }
 }

@@ -1,9 +1,6 @@
 ﻿using FoodShop.Application.Contract.Persistence;
 using FoodShop.Application.Services;
 using FoodShop.Domain.Entities;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FoodShop.Persistence.Repositories
 {
@@ -12,15 +9,18 @@ namespace FoodShop.Persistence.Repositories
         private readonly ICartRepository _cartRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IPaymentService _paymentService; // Updated to use IPaymentService
+        private readonly IUserRepository userRepository;
 
-        public CheckoutService(ICartRepository cartRepository, IOrderRepository orderRepository, IPaymentService paymentService)
+
+        public CheckoutService(ICartRepository cartRepository, IOrderRepository orderRepository, IPaymentService paymentService, IUserRepository userRepository)
         {
             _cartRepository = cartRepository;
             _orderRepository = orderRepository;
             _paymentService = paymentService;
+            this.userRepository = userRepository;
         }
 
-        public async Task<Order> ProcessCheckoutAsync(int userId, string paymentMethod)
+        public async Task<(Order order, string orderLink)> ProcessCheckoutAsync(int userId, string paymentMethod)
         {
             // Get the user's cart
             var cartItems = await _cartRepository.GetCartItems(userId);
@@ -37,20 +37,22 @@ namespace FoodShop.Persistence.Repositories
             }
 
             // Process payment
-            bool paymentSuccessful = await _paymentService.ProcessPaymentAsync(totalAmount, paymentMethod);
-            if (!paymentSuccessful)
+            var (success, result) = await _paymentService.CreatePaymentLinkAsync((long)totalAmount, paymentMethod, "Orderid");
+            if (!success)
             {
-                throw new InvalidOperationException("Payment failed");
+                throw new InvalidOperationException(result);
             }
-
+            Console.WriteLine(result);
+            var user = await userRepository.GetUserInfo(userId);
             // Create order
             var order = new Order
             {
                 UserId = userId,
                 OrderDate = DateTime.UtcNow,
                 TotalAmount = totalAmount,
-                ShipName = "John Doe",
-                ShipAddress = "123 Main St",
+                ShipAddress = user.ShipAddress,
+                ShipName = user.ShipName,
+                PhoneNumber = user.PhoneNumber,
                 OrderDetail = cartItems.Select(item => new OrderDetail
                 {
                     ProductId = item.ProductId,
@@ -66,7 +68,23 @@ namespace FoodShop.Persistence.Repositories
             // Clear the cart
             await _cartRepository.ClearCartAsync(userId);
 
-            return order;
+            //var (statusSuccess, paymentStatusMessage) = await _paymentService.CheckPaymentStatusAsync(GenerateAppTransId(order));
+            //if(!statusSuccess)
+            //{
+            //    order.Status = Domain.Enum.OrderStatus.Canceled;
+            //    await _orderRepository.UpdateOrderStatusAsync(order.OrderId, Domain.Enum.OrderStatus.Canceled);
+            //    throw new InvalidOperationException($"Payment failed: {paymentStatusMessage}");
+            //}
+
+            //order.Status = Domain.Enum.OrderStatus.Confirmed;
+            //await _orderRepository.UpdateOrderStatusAsync(order.OrderId, Domain.Enum.OrderStatus.Confirmed);
+
+            return (order, result);
+        }
+
+        private string GenerateAppTransId(Order order)
+        {
+            return order.OrderDate.ToString("yyMMdd") + "_" + new Random().Next(100000, 999999).ToString();
         }
     }
 }

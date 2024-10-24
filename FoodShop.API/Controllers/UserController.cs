@@ -55,18 +55,6 @@ namespace FoodShop.API.Controllers
             });
 
             return NoContent();
-            //var result = await _userManager.UpdateAsync(user);
-            //if (result.Succeeded)
-            //{
-            //    return Ok("User info updated successfully");
-            //}
-
-            //// Handle errors
-            //foreach (var error in result.Errors)
-            //{
-            //    ModelState.AddModelError(string.Empty, error.Description);
-            //}
-            //return BadRequest(ModelState);
         }
 
         [HttpPost("ChangePassword")]

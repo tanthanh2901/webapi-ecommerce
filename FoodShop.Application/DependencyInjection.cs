@@ -11,6 +11,8 @@ namespace FoodShop.Application
             services.AddAutoMapper(assembly);
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assembly));
             services.AddScoped<RoleServices>();
+            services.AddScoped<IPaymentService, PaymentService>();
+
             return services;
         }
     }

@@ -1,5 +1,6 @@
 using FoodShop.API.Services;
 using FoodShop.Application;
+using FoodShop.Application.Services.Payment.ZaloPay;
 using FoodShop.Domain.Entities;
 using FoodShop.Infrastructure;
 using FoodShop.Persistence;
@@ -67,15 +68,6 @@ builder.Services.AddAuthentication(options =>
 
     options.Events = new JwtBearerEvents
     {
-        //OnMessageReceived = ctx =>
-        //{
-        //    ctx.Request.Cookies.TryGetValue("accessToken", out var accessToken);
-        //    if (!string.IsNullOrEmpty(accessToken))
-        //    {
-        //        ctx.Token = accessToken;
-        //    }
-        //    return Task.CompletedTask;
-        //}
         OnMessageReceived = context =>
         {
             if (context.Request.Cookies.ContainsKey("accessToken"))
@@ -102,6 +94,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<RoleServices>();
 builder.Services.AddScoped<AuthenticationServices>();
 
+builder.Services.Configure<ZaloPayConfig>(
+        builder.Configuration.GetSection(ZaloPayConfig.ConfigName));
+
 builder.Services.AddControllers();
      //.AddJsonOptions(options =>
      //{
@@ -116,7 +111,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
-
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

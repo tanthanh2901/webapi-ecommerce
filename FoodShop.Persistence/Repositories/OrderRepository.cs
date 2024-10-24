@@ -1,12 +1,6 @@
 ﻿using FoodShop.Domain.Entities;
 using FoodShop.Domain.Enum;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FoodShop.Persistence.Repositories
 {
@@ -22,10 +16,8 @@ namespace FoodShop.Persistence.Repositories
         {
             await dbContext.Orders.AddAsync(order);
 
-            // Save changes to the database
             await dbContext.SaveChangesAsync();
 
-            // Return the created order (with the generated OrderId)
             return order;
         }
 
@@ -46,6 +38,14 @@ namespace FoodShop.Persistence.Repositories
             return await dbContext.Orders
                 .Include(o => o.OrderDetail)
                 .FirstOrDefaultAsync(o => o.OrderId == orderId);
+        }
+
+        public async Task<List<Order>> GetOrderByStatus(int userId, OrderStatus status)
+        {
+            var orders = await GetAllOrders(userId);
+            var filteredOrders = orders.Where(o => o.Status == status).ToList();
+
+            return filteredOrders;  
         }
 
         public async Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus status)

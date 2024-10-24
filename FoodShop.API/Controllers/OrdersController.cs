@@ -1,8 +1,8 @@
-﻿using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Feature.Order.GetAllOrders;
+﻿using FoodShop.Application.Feature.Order.GetAllOrders;
 using FoodShop.Application.Feature.Order.GetOrder;
+using FoodShop.Application.Feature.Order.GetOrdersByStatus;
 using FoodShop.Domain.Entities;
-using FoodShop.Persistence.Repositories;
+using FoodShop.Domain.Enum;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,12 +19,10 @@ namespace FoodShop.API.Controllers
     {
         private readonly IMediator mediatR;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IOrderRepository orderRepository;
 
-        public OrdersController(UserManager<AppUser> userManager, IOrderRepository orderRepository, IMediator mediatR)
+        public OrdersController(UserManager<AppUser> userManager, IMediator mediatR)
         {
             _userManager = userManager;
-            this.orderRepository = orderRepository;
             this.mediatR = mediatR;
         }
 
@@ -50,7 +48,6 @@ namespace FoodShop.API.Controllers
             var orders = await mediatR.Send(new GetOrderQuery() { OrderId = orderId});
             return Ok(orders);
         }
-
         
 
         // PUT api/<ValuesController>/5
@@ -65,9 +62,55 @@ namespace FoodShop.API.Controllers
         {
         }
 
-        [HttpPost]
-        public void Post([FromBody] string value)
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingOrders()
         {
+            var userId = await GetUserId();
+            if (userId == null) return Unauthorized();
+
+            //var pendingOrders = await orderRepository.GetOrderByStatus(userId, OrderStatus.Pending);
+            var pendingOrders = await mediatR.Send(new GetOrdersByStatusQuery() { UserId = userId, OrderStatus = OrderStatus.Pending });
+            return Ok(pendingOrders);
+        }
+
+        [HttpGet("confirm")]
+        public async Task<IActionResult> GetConfirmOrders()
+        {
+            var userId = await GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var confirmOrders = await mediatR.Send(new GetOrdersByStatusQuery() { UserId = userId, OrderStatus = OrderStatus.Confirmed });
+            return Ok(confirmOrders);
+        }
+
+        [HttpGet("shipping")]
+        public async Task<IActionResult> GetShippingOrders()
+        {
+            var userId = await GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var shippingOrders = await mediatR.Send(new GetOrdersByStatusQuery() { UserId = userId, OrderStatus = OrderStatus.Shipping });
+            return Ok(shippingOrders);
+        }
+
+        [HttpGet("delivered")]
+        public async Task<IActionResult> GetDeliveredOrders()
+        {
+            var userId = await GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var deliveredOrders = await mediatR.Send(new GetOrdersByStatusQuery() { UserId = userId, OrderStatus = OrderStatus.Delivered });
+            return Ok(deliveredOrders);
+        }
+
+        [HttpGet("canceled")]
+        public async Task<IActionResult> GetCanceledOrders()
+        {
+            var userId = await GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var CanceledOrders = await mediatR.Send(new GetOrdersByStatusQuery() { UserId = userId, OrderStatus = OrderStatus.Canceled });
+            return Ok(CanceledOrders);
         }
     }
 }

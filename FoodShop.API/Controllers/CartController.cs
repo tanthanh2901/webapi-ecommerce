@@ -170,8 +170,8 @@ namespace FoodShop.API.Controllers
 
             try
             {
-                var order = await _checkoutService.ProcessCheckoutAsync(userId, "cod");
-                return Ok(new { OrderId = order.OrderId, Message = "Checkout successful" });
+                var (order, orderLink) = await _checkoutService.ProcessCheckoutAsync(userId, "cod");
+                return Ok(new { OrderId = order.OrderId, orderLink = orderLink, Message = "Checkout successful" });
             }
             catch (InvalidOperationException ex)
             {
