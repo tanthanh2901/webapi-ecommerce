@@ -19,22 +19,16 @@ namespace FoodShop.Infrastructure.Repositories
 {
     public class AuthenRepository : BaseRepository<AppUser>, IAuthenRepository
     {
-        //private readonly FoodShopDbContext dbContext;
+
         private readonly UserManager<AppUser> userManager;
         private readonly SignInManager<AppUser> signInManager;
         private readonly ILogger<AuthenRepository> logger;
         private readonly IConfiguration _configuration; 
 
-
-        //private readonly IUserStore<IdentityUser> _userStore;
-        //private readonly IUserEmailStore<IdentityUser> _emailStore;
-
         public AuthenRepository(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             ILogger<AuthenRepository> logger,
-            //IUserStore<IdentityUser> userStore,
-            //IUserEmailStore<IdentityUser> emailStore,
             FoodShopDbContext dbContext,
             IConfiguration configuration
            ) : base(dbContext)
@@ -44,8 +38,6 @@ namespace FoodShop.Infrastructure.Repositories
             this.logger = logger;
             DbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _configuration = configuration;
-            //_userStore = userStore;
-            //_emailStore = emailStore;
         }
 
         private FoodShopDbContext DbContext { get; }
@@ -75,7 +67,6 @@ namespace FoodShop.Infrastructure.Repositories
             }
             return user;
         }
-
 
         public async Task<RegisterResponse> Register(RegisterModel registerModel, CancellationToken cancellationToken = default)
         {
@@ -119,55 +110,6 @@ namespace FoodShop.Infrastructure.Repositories
             logger.LogInformation("User log out.");
 
         }
-
-        public TokenDto Generate(AppUser user)
-        {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user), "User object cannot be null");
-            }
-
-            var securityKey = new SymmetricSecurityKey(
-                Encoding.ASCII.GetBytes(_configuration["Jwt:SecretForKey"]));
-            var signingCredentials = new SigningCredentials(
-                securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claimsForToken = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-
-                new Claim("name", user.UserName), // User's full name
-                new Claim("userId", user.Id.ToString()), // User ID
-            };
-
-            var jwtSecurityToken = new JwtSecurityToken(
-                _configuration["Jwt:Issuer"],
-                _configuration["Jwt:Audience"],
-                claimsForToken,
-                DateTime.UtcNow,
-                DateTime.UtcNow.AddHours(1),
-                signingCredentials);
-
-            var accessToken = new JwtSecurityTokenHandler()
-               .WriteToken(jwtSecurityToken);
-
-            var refreshToken = GenerateRefreshToken();
-
-            var tokenDto = new TokenDto(accessToken, refreshToken);
-
-            return tokenDto;
-        }
-
-        private string GenerateRefreshToken()
-        {
-            var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
-        }
         private ClaimsPrincipal GetClaimsPrincipalFromExpireToken(string token)
         {
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:SecretForKey"]);
@@ -176,7 +118,7 @@ namespace FoodShop.Infrastructure.Repositories
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidateLifetime = true,
+                ValidateLifetime = false,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = _configuration["Jwt:Issuer"],
                 ValidAudience = _configuration["Jwt:Audience"],
@@ -195,7 +137,70 @@ namespace FoodShop.Infrastructure.Repositories
 
             return principal;
         }
-        
 
+        public async Task<TokenDto> Generate(AppUser user)
+        {
+            var securityKey = new SymmetricSecurityKey(
+                Encoding.ASCII.GetBytes(_configuration["Jwt:SecretForKey"]));
+            var signingCredentials = new SigningCredentials(
+                securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claimsForToken = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("username", user.UserName.ToString()),
+                new Claim("userId", user.Id.ToString()),
+            };
+
+            var jwtSecurityToken = new JwtSecurityToken(
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"],
+                claimsForToken,
+                DateTime.UtcNow,
+                DateTime.UtcNow.AddMinutes(1),
+                signingCredentials);
+
+            var accessToken = new JwtSecurityTokenHandler()
+               .WriteToken(jwtSecurityToken);
+
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+            await userManager.UpdateAsync(user);
+
+            return new TokenDto(accessToken, refreshToken);
+        }
+
+        public async Task<TokenDto> RefreshToken(TokenDto tokenDto)
+        {
+            var principal = GetClaimsPrincipalFromExpireToken(tokenDto.accessToken);
+
+            foreach (var claim in principal.Claims)
+            {
+                Console.WriteLine($"Claim Type: {claim.Type}, Claim Value: {claim.Value}");
+            }
+
+            var userName = principal.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
+            var user = await userManager.FindByNameAsync(userName);
+            if (user == null || user.RefreshToken != tokenDto.refreshToken ||
+                user.RefreshTokenExpiryTime < DateTime.Now)
+            {
+                throw new Exception("Invalid or expired refresh token.");
+            }
+
+            return await Generate(user);
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
     }
 }

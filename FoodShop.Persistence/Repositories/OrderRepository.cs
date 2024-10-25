@@ -27,10 +27,12 @@ namespace FoodShop.Persistence.Repositories
             //    .Include(o => o.OrderDetail)
             //        .ThenInclude(od => od.Product)
             //    .Where(o => o.UserId == userId).ToListAsync();
-            return await dbContext.Orders
+            var orders = await dbContext.Orders
                .Where(o => o.UserId == userId)
-               .Include(o => o.OrderDetail) // Ensure OrderDetails are included
+               .Include(o => o.OrderDetail)
                .ToListAsync();
+
+            return orders;
         }
 
         public async Task<Order> GetOrderByIdAsync(int orderId)

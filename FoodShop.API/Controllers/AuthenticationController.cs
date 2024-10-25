@@ -3,16 +3,12 @@ using FoodShop.Application.Feature.Account.Login;
 using FoodShop.Application.Feature.Account.Models;
 using FoodShop.Application.Feature.Account.Register;
 using MediatR;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using FoodShop.API.Services;
 using Microsoft.AspNetCore.Identity;
 using FoodShop.Domain.Entities;
 using FoodShop.Application.Contract.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using FoodShop.Application.Dto;
 
 namespace FoodShop.API.Controllers
@@ -22,18 +18,16 @@ namespace FoodShop.API.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IMediator mediatR;
-        private readonly IJwtProvider jwtProvider;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IAuthenRepository userRepository;
+        private readonly IAuthenRepository authenRepository;
         private readonly AuthenticationServices authenticationService;
 
-        public AuthenticationController(IMediator mediatR, IAuthenRepository userRepository, AuthenticationServices authenticationService, UserManager<AppUser> userManager, IJwtProvider jwtProvider)
+        public AuthenticationController(IMediator mediatR, IAuthenRepository authenRepository, AuthenticationServices authenticationService, UserManager<AppUser> userManager)
         {
             this.mediatR = mediatR;
-            this.userRepository = userRepository;
+            this.authenRepository = authenRepository;
             this.authenticationService = authenticationService;
             _userManager = userManager;
-            this.jwtProvider = jwtProvider;
         }
 
         [HttpPost("login")]
@@ -79,7 +73,7 @@ namespace FoodShop.API.Controllers
         public async Task<IActionResult> Logout()
         {
             // Sign out the user
-            await userRepository.Logout();
+            await authenRepository.Logout();
 
             // Clear the authentication cookie
             Response.Cookies.Delete("accessToken");
@@ -89,7 +83,7 @@ namespace FoodShop.API.Controllers
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken(TokenDto tokenDto)
         {
-            var newTokens = await jwtProvider.RefreshToken(tokenDto);
+            var newTokens = await authenRepository.RefreshToken(tokenDto);
 
             // Set the new tokens in cookies
             authenticationService.SetTokenCookie(newTokens, HttpContext);

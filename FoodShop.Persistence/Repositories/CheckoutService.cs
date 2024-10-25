@@ -35,14 +35,7 @@ namespace FoodShop.Persistence.Repositories
             {
                 totalAmount += item.Product.Price * item.Quantity;
             }
-
-            // Process payment
-            var (success, result) = await _paymentService.CreatePaymentLinkAsync((long)totalAmount, paymentMethod, "Orderid");
-            if (!success)
-            {
-                throw new InvalidOperationException(result);
-            }
-            Console.WriteLine(result);
+                    
             var user = await userRepository.GetUserInfo(userId);
             // Create order
             var order = new Order
@@ -62,11 +55,23 @@ namespace FoodShop.Persistence.Repositories
                 Status = Domain.Enum.OrderStatus.Pending
             };
 
-            // Save order
-            order = await _orderRepository.CreateOrderAsync(order);
+            // Process payment
+            switch (paymentMethod)
+            {
+                case "zalopay":
+                    var (success, result) = await _paymentService.CreatePaymentLinkAsync((long)totalAmount, paymentMethod, "Orderid");
+                    if (!success)
+                    {
+                        throw new InvalidOperationException(result);
+                    }
+                    order = await _orderRepository.CreateOrderAsync(order);
+                    return (order, result);
+                case "cod":
+                    order = await _orderRepository.CreateOrderAsync(order);
+                    await _cartRepository.ClearCartAsync(userId);
+                    return (order, "Check out successfully");
 
-            // Clear the cart
-            await _cartRepository.ClearCartAsync(userId);
+            }
 
             //var (statusSuccess, paymentStatusMessage) = await _paymentService.CheckPaymentStatusAsync(GenerateAppTransId(order));
             //if(!statusSuccess)
@@ -79,7 +84,7 @@ namespace FoodShop.Persistence.Repositories
             //order.Status = Domain.Enum.OrderStatus.Confirmed;
             //await _orderRepository.UpdateOrderStatusAsync(order.OrderId, Domain.Enum.OrderStatus.Confirmed);
 
-            return (order, result);
+            throw new InvalidOperationException("Invalid payment method");
         }
 
         private string GenerateAppTransId(Order order)
