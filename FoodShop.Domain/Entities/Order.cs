@@ -25,5 +25,8 @@ namespace FoodShop.Domain.Entities
 
         public ICollection<OrderDetail> OrderDetail { get; set; }
         public OrderStatus Status { get; set; }
+
+        public Payment Payment { get; set; }
+
     }
 }

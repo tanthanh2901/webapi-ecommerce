@@ -1,5 +1,5 @@
 ﻿using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Services;
+using FoodShop.Application.Services.Payment;
 using FoodShop.Infrastructure.Repositories;
 using FoodShop.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +26,7 @@ namespace FoodShop.Persistence
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAdminRepository, AdminRepository>(); 
             services.AddScoped<ICheckoutService, CheckoutService>();
+            services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
 
             services.AddLogging();
             return services;

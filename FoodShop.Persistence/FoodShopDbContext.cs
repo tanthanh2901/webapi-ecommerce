@@ -11,7 +11,7 @@ namespace FoodShop.Persistence
         {
         }
 
-        public FoodShopDbContext(DbSet<AppUser> appUsers, DbSet<Cart> carts, DbSet<CartItem> cartItems, DbSet<Category> categories, DbSet<Order> orders, DbSet<OrderDetail> orderDetails, DbSet<Product> products)
+        public FoodShopDbContext(DbSet<AppUser> appUsers, DbSet<Cart> carts, DbSet<CartItem> cartItems, DbSet<Category> categories, DbSet<Order> orders, DbSet<OrderDetail> orderDetails, DbSet<Product> products, DbSet<Payment> payment, DbSet<PaymentMethod> paymentMethod)
         {
             AppUsers = appUsers;
             Carts = carts;
@@ -20,6 +20,8 @@ namespace FoodShop.Persistence
             Orders = orders;
             OrderDetails = orderDetails;
             Products = products;
+            Payment = payment;
+            PaymentMethod = paymentMethod;
         }
 
         public DbSet<AppUser> AppUsers { get; set; }
@@ -29,6 +31,8 @@ namespace FoodShop.Persistence
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Payment> Payment { get; set; }
+        public DbSet<PaymentMethod> PaymentMethod { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +48,13 @@ namespace FoodShop.Persistence
                 .HasOne(ci => ci.Cart)
                 .WithMany(c => c.Items)
                 .HasForeignKey(ci => ci.CartId);
+
+            modelBuilder.Entity<CartItem>(entity =>
+            {
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18,2)") // Specify the SQL type directly
+                    .HasPrecision(18, 2); // Or specify precision and scale separately
+            });
 
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.OrderDetail)

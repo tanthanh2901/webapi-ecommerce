@@ -1,4 +1,5 @@
 ﻿using FoodShop.Application.Contract.Persistence;
+using FoodShop.Application.Dto;
 using FoodShop.Application.Feature.User.Model;
 using FoodShop.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -29,15 +30,16 @@ namespace FoodShop.Persistence.Repositories
             }
             return user;
         }
-        public async Task<AppUser> GetUserInfo(int userId)
+        public async Task<UserDto> GetUserInfo(int userId)
         {
             var appUser =  await GetUser(userId);
+            var roles = await userManager.GetRolesAsync(appUser);
             if (appUser == null)
             {
                 throw new Exception("User not found");
             }
 
-           return new AppUser
+            return new UserDto
             {
                 UserName = appUser.UserName,
                 FirstName = appUser.FirstName,
@@ -45,7 +47,8 @@ namespace FoodShop.Persistence.Repositories
                 Email = appUser.Email,
                 ShipName = appUser.ShipName,
                 ShipAddress = appUser.ShipAddress,
-                PhoneNumber = appUser.PhoneNumber
+                PhoneNumber = appUser.PhoneNumber,
+                 Roles = roles.ToList()
             };
 
         }

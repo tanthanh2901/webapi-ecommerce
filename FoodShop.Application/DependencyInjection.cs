@@ -1,4 +1,5 @@
 ﻿using FoodShop.Application.Services;
+using FoodShop.Application.Services.Payment;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FoodShop.Application

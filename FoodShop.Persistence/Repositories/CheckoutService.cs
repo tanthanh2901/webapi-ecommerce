@@ -1,5 +1,5 @@
 ﻿using FoodShop.Application.Contract.Persistence;
-using FoodShop.Application.Services;
+using FoodShop.Application.Services.Payment;
 using FoodShop.Domain.Entities;
 
 namespace FoodShop.Persistence.Repositories
@@ -58,22 +58,21 @@ namespace FoodShop.Persistence.Repositories
             // Process payment
             switch (paymentMethod)
             {
-                case "zalopay":
-                    var (success, result) = await _paymentService.CreatePaymentLinkAsync((long)totalAmount, paymentMethod, "Orderid");
-                    if (!success)
-                    {
-                        throw new InvalidOperationException(result);
-                    }
-                    order = await _orderRepository.CreateOrderAsync(order);
-                    return (order, result);
                 case "cod":
                     order = await _orderRepository.CreateOrderAsync(order);
                     await _cartRepository.ClearCartAsync(userId);
                     return (order, "Check out successfully");
-
+                case "zalopay":
+                    order = await _orderRepository.CreateOrderAsync(order);
+                    var (success, result) = await _paymentService.CreateZaloPaymentLinkAsync(100000, paymentMethod, order.OrderId.ToString());
+                    if (!success)
+                    {
+                        throw new InvalidOperationException(result);
+                    }
+                    return (order, result);             
             }
 
-            //var (statusSuccess, paymentStatusMessage) = await _paymentService.CheckPaymentStatusAsync(GenerateAppTransId(order));
+            //var (statusSuccess, paymentStatusMessage) = await _paymentService.CheckZaloPaymentStatusAsync(GenerateAppTransId(order));
             //if(!statusSuccess)
             //{
             //    order.Status = Domain.Enum.OrderStatus.Canceled;

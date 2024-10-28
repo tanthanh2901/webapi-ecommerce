@@ -1,8 +1,10 @@
-﻿using FoodShop.Application.Feature.Order.GetAllOrders;
+﻿using FoodShop.Application.Dto;
+using FoodShop.Application.Feature.Order.GetAllOrders;
 using FoodShop.Application.Feature.Order.GetOrder;
 using FoodShop.Application.Feature.Order.GetOrdersByStatus;
 using FoodShop.Domain.Entities;
 using FoodShop.Domain.Enum;
+using FoodShop.Persistence.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -18,12 +20,14 @@ namespace FoodShop.API.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IMediator mediatR;
+        private readonly IOrderRepository orderRepository;
         private readonly UserManager<AppUser> _userManager;
 
-        public OrdersController(UserManager<AppUser> userManager, IMediator mediatR)
+        public OrdersController(UserManager<AppUser> userManager, IMediator mediatR, IOrderRepository orderRepository)
         {
             _userManager = userManager;
             this.mediatR = mediatR;
+            this.orderRepository = orderRepository;
         }
 
         private async Task<int> GetUserId()
@@ -33,20 +37,23 @@ namespace FoodShop.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Order>>> GetAllOrders()
+        public async Task<ActionResult<List<OrderDto>>> GetAllOrders()
         {
             var userId = await GetUserId();
             if (userId == null) return Unauthorized();
 
-            var orders = await mediatR.Send(new GetAllOrdersQuery() { UserId = userId});
+            //var orders = await mediatR.Send(new GetAllOrdersQuery() { UserId = userId});
+            var orders =  await orderRepository.GetAllOrders(userId);
             return Ok(orders);
         }
 
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrder(int orderId)
         {
-            var orders = await mediatR.Send(new GetOrderQuery() { OrderId = orderId});
-            return Ok(orders);
+            //var orders = await mediatR.Send(new GetOrderQuery() { OrderId = orderId});
+            var order = await orderRepository.GetOrderByIdAsync(orderId);
+
+            return Ok(order);
         }
         
 

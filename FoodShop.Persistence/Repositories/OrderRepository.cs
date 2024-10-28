@@ -1,4 +1,5 @@
-﻿using FoodShop.Domain.Entities;
+﻿using FoodShop.Application.Dto;
+using FoodShop.Domain.Entities;
 using FoodShop.Domain.Enum;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,33 +22,66 @@ namespace FoodShop.Persistence.Repositories
             return order;
         }
 
-        public async Task<List<Order>> GetAllOrders(int userId)
+        public async Task<List<OrderDto>> GetAllOrders(int userId)
         {
             //return await dbContext.Orders
             //    .Include(o => o.OrderDetail)
             //        .ThenInclude(od => od.Product)
             //    .Where(o => o.UserId == userId).ToListAsync();
+            //var orders = await dbContext.Orders
+            //   .Where(o => o.UserId == userId)
+            //   .Include(o => o.OrderDetail)
+            //   .ToListAsync();
+
             var orders = await dbContext.Orders
-               .Where(o => o.UserId == userId)
-               .Include(o => o.OrderDetail)
-               .ToListAsync();
+                .Where(o => o.UserId == userId)
+                .Select(o => new OrderDto
+                {
+                    OrderId = o.OrderId,
+                    UserId = o.UserId,
+                    OrderDate = o.OrderDate,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    Items = o.OrderDetail.Select(od => new OrderDetailDto
+                    {
+                        OrderId = od.OrderId,
+                        ProductId = od.ProductId,
+                        Quantity = od.Quantity,
+                        UnitPrice = od.UnitPrice
+                    }).ToList()
+                }).ToListAsync();
 
             return orders;
         }
 
-        public async Task<Order> GetOrderByIdAsync(int orderId)
+        public async Task<OrderDto> GetOrderByIdAsync(int orderId)
         {
-            return await dbContext.Orders
-                .Include(o => o.OrderDetail)
-                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+            var order = await dbContext.Orders.Where(o => o.OrderId == orderId)
+                .Select(o => new OrderDto
+                {
+                    OrderId = o.OrderId,
+                    UserId = o.UserId,
+                    OrderDate = o.OrderDate,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    Items = o.OrderDetail.Select(od => new OrderDetailDto
+                    {
+                        OrderId = od.OrderId,
+                        ProductId = od.ProductId,
+                        Quantity = od.Quantity,
+                        UnitPrice = od.UnitPrice
+                    }).ToList()
+                }).FirstOrDefaultAsync();
+            return order;
         }
 
-        public async Task<List<Order>> GetOrderByStatus(int userId, OrderStatus status)
+
+        public async Task<List<OrderDto>> GetOrderByStatus(int userId, OrderStatus status)
         {
             var orders = await GetAllOrders(userId);
             var filteredOrders = orders.Where(o => o.Status == status).ToList();
 
-            return filteredOrders;  
+            return filteredOrders;
         }
 
         public async Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus status)

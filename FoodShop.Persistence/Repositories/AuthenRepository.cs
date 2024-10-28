@@ -46,25 +46,27 @@ namespace FoodShop.Infrastructure.Repositories
         {
             var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
 
-            AppUser user = null;
-            //AppUser user = new AppUser();
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                logger.LogInformation("login success");
-                user = await userManager.FindByEmailAsync(model.Email);
+                //// Handle specific cases before logging an error
+                //if (result.RequiresTwoFactor)
+                //{
+                //    // Handle two-factor authentication case, if necessary
+                //}
+                //else if (result.IsLockedOut)
+                //{
+                //    // Handle lockout scenario, if necessary
+                //}
+                //else
+                //{
+                //}
+                logger.LogError("Login failed for user: {Email}", model.Email); 
+                return null; // Early exit on failure
             }
-            else if (result.RequiresTwoFactor)
-            {
-                // Handle two-factor authentication case
-            }
-            else if(result.IsLockedOut)
-            {
-                // Handle lockout scenario
-            }
-            else
-            {
-                logger.LogError("login fail");
-            }
+
+            logger.LogInformation("Login successful for user: {Email}", model.Email); 
+            var user = await userManager.FindByEmailAsync(model.Email);
+
             return user;
         }
 
@@ -140,6 +142,8 @@ namespace FoodShop.Infrastructure.Repositories
 
         public async Task<TokenDto> Generate(AppUser user)
         {
+            var roles = await userManager.GetRolesAsync(user);
+            
             var securityKey = new SymmetricSecurityKey(
                 Encoding.ASCII.GetBytes(_configuration["Jwt:SecretForKey"]));
             var signingCredentials = new SigningCredentials(
@@ -150,15 +154,22 @@ namespace FoodShop.Infrastructure.Repositories
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("username", user.UserName.ToString()),
+                new Claim("username", user.UserName.ToString()),
+
                 new Claim("userId", user.Id.ToString()),
             };
+
+            foreach (var role in roles)
+            {
+                claimsForToken.Add(new Claim(ClaimTypes.Role, role));  // or use "role" as the claim type
+            }
 
             var jwtSecurityToken = new JwtSecurityToken(
                 _configuration["Jwt:Issuer"],
                 _configuration["Jwt:Audience"],
                 claimsForToken,
                 DateTime.UtcNow,
-                DateTime.UtcNow.AddMinutes(1),
+                DateTime.UtcNow.AddHours(1),
                 signingCredentials);
 
             var accessToken = new JwtSecurityTokenHandler()

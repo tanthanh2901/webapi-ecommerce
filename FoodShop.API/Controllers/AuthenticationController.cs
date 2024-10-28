@@ -39,14 +39,14 @@ namespace FoodShop.API.Controllers
                 var tokenDto = await mediatR.Send(new LoginCommand(loginModel));
                 authenticationService.SetTokenCookie(tokenDto, HttpContext);
 
-                var csrfToken = Guid.NewGuid().ToString(); // Generate a random token
+                //var csrfToken = Guid.NewGuid().ToString(); // Generate a random token
 
-                Response.Cookies.Append("XSRF-TOKEN", csrfToken, new CookieOptions
-                {
-                    HttpOnly = true,  
-                    Secure = true,   
-                    SameSite = SameSiteMode.Strict
-                });
+                //Response.Cookies.Append("XSRF-TOKEN", csrfToken, new CookieOptions
+                //{
+                //    HttpOnly = true,  
+                //    Secure = true,   
+                //    SameSite = SameSiteMode.Strict
+                //});
 
                 return Ok(new { accessToken = tokenDto.accessToken });
               

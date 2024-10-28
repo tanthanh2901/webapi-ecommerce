@@ -5,12 +5,12 @@ using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace FoodShop.Application.Services
+namespace FoodShop.Application.Services.Payment
 {
     public interface IPaymentService
     {
-        Task<(bool Success, string MessageOrLink)> CreatePaymentLinkAsync(long amount, string description, string order_id);
-        Task<(bool Success, string StatusMessage)> CheckPaymentStatusAsync(string appTransId);
+        Task<(bool Success, string MessageOrLink)> CreateZaloPaymentLinkAsync(long amount, string description, string order_id);
+        Task<(bool Success, string StatusMessage)> CheckZaloPaymentStatusAsync(string appTransId);
     }
 
     public class PaymentService : IPaymentService
@@ -20,17 +20,17 @@ namespace FoodShop.Application.Services
         {
             _zaloPayConfig = zaloPayConfig.Value;
         }
-        public async Task<(bool Success, string MessageOrLink)> CreatePaymentLinkAsync(long amount, string description, string order_id)
+        public async Task<(bool Success, string MessageOrLink)> CreateZaloPaymentLinkAsync(long amount, string description, string orderId)
         {
             var zalopay_Params = new Dictionary<string, object>
             {
                 { "appid", _zaloPayConfig.AppId },
-                { "apptransid", GenerateAppTransId() },
+                { "apptransid", $"{DateTime.Now:yyMMdd}_{orderId}" },
                 { "apptime", DateTimeOffset.Now.ToUnixTimeMilliseconds() },
                 { "appuser", _zaloPayConfig.AppUser },
                 { "amount", amount },
-                { "description", $"Thanh toan don hang #{order_id}" },
-                { "bankcode", "" }
+                { "description", $"Thanh toan don hang #{orderId}" },
+                { "bankcode", "zalopayapp" }
             };
 
             var item = "[{\"itemid\":\"knb\",\"itemname\":\"kim nguyen bao\",\"itemprice\":198400,\"itemquantity\":1}]";
@@ -50,7 +50,7 @@ namespace FoodShop.Application.Services
 
             using var client = new HttpClient();
             var formContent = new FormUrlEncodedContent(zalopay_Params.ToDictionary(k => k.Key, v => v.Value.ToString()));
-            
+
             try
             {
                 var response = await client.PostAsync(_zaloPayConfig.PaymentUrl, formContent);
@@ -88,7 +88,7 @@ namespace FoodShop.Application.Services
             }
         }
 
-        public async Task<(bool Success, string StatusMessage)> CheckPaymentStatusAsync(string appTransId)
+        public async Task<(bool Success, string StatusMessage)> CheckZaloPaymentStatusAsync(string appTransId)
         {
             var requestParams = new Dictionary<string, object>
             {
@@ -131,5 +131,7 @@ namespace FoodShop.Application.Services
                 return (false, ex.Message);
             }
         }
+        
+
     }
 }

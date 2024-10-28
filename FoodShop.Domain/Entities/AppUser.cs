@@ -12,15 +12,15 @@ namespace FoodShop.Domain.Entities
 {
     public class AppUser : IdentityUser<int> 
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
 
         public Cart Cart { get; set; }
         //[ForeignKey]
         //public int CartId { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
 
-        public string RefreshToken { get; set; }
+        public string RefreshToken { get; set; } = string.Empty;
         public DateTime RefreshTokenExpiryTime { get; set; }
 
         public string ShipName { get; set; } = string.Empty;

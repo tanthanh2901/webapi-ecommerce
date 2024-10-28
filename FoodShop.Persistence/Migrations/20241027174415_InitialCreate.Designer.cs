@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodShop.Persistence.Migrations
 {
     [DbContext(typeof(FoodShopDbContext))]
-    [Migration("20241009134112_update-cartItem")]
-    partial class updatecartItem
+    [Migration("20241027174415_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -76,6 +76,14 @@ namespace FoodShop.Persistence.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -107,6 +115,14 @@ namespace FoodShop.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShipAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShipName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -160,6 +176,7 @@ namespace FoodShop.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ProductId")
@@ -210,6 +227,10 @@ namespace FoodShop.Persistence.Migrations
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShipAddress")
                         .IsRequired()
@@ -262,6 +283,63 @@ namespace FoodShop.Persistence.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderDetails");
+                });
+
+            modelBuilder.Entity("FoodShop.Domain.Entities.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"), 1L, 1);
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("MethodId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TransactionId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("MethodId");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.ToTable("Payment");
+                });
+
+            modelBuilder.Entity("FoodShop.Domain.Entities.PaymentMethod", b =>
+                {
+                    b.Property<int>("MethodId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MethodId"), 1L, 1);
+
+                    b.Property<string>("MethodName")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("MethodId");
+
+                    b.ToTable("PaymentMethod");
                 });
 
             modelBuilder.Entity("FoodShop.Domain.Entities.Product", b =>
@@ -473,6 +551,25 @@ namespace FoodShop.Persistence.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("FoodShop.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("FoodShop.Domain.Entities.PaymentMethod", "PaymentMethod")
+                        .WithMany("Payments")
+                        .HasForeignKey("MethodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FoodShop.Domain.Entities.Order", "Order")
+                        .WithOne("Payment")
+                        .HasForeignKey("FoodShop.Domain.Entities.Payment", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("PaymentMethod");
+                });
+
             modelBuilder.Entity("FoodShop.Domain.Entities.Product", b =>
                 {
                     b.HasOne("FoodShop.Domain.Entities.Category", "Category")
@@ -556,6 +653,14 @@ namespace FoodShop.Persistence.Migrations
             modelBuilder.Entity("FoodShop.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderDetail");
+
+                    b.Navigation("Payment")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FoodShop.Domain.Entities.PaymentMethod", b =>
+                {
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("FoodShop.Domain.Entities.Product", b =>

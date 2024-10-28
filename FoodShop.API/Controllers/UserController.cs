@@ -1,4 +1,5 @@
-﻿using FoodShop.Application.Feature.User.Commands.ChangePassword;
+﻿using FoodShop.Application.Contract.Persistence;
+using FoodShop.Application.Feature.User.Commands.ChangePassword;
 using FoodShop.Application.Feature.User.Commands.UpdateUserInfo;
 using FoodShop.Application.Feature.User.Model;
 using FoodShop.Application.Feature.User.Queries.GetUserInfo;
@@ -17,10 +18,12 @@ namespace FoodShop.API.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IMediator mediatR;
-        public UserController(UserManager<AppUser> userManager, IMediator mediatR)
+        private readonly IUserRepository userRepository;
+        public UserController(UserManager<AppUser> userManager, IMediator mediatR, IUserRepository userRepository)
         {
             _userManager = userManager;
             this.mediatR = mediatR;
+            this.userRepository = userRepository;
         }
 
         private async Task<int> GetUserId()
@@ -38,8 +41,8 @@ namespace FoodShop.API.Controllers
                 return NotFound("User not found");
             }
 
-            var userInfo = await mediatR.Send(new GetUserInfoQuery() { UserId = userId });
-
+            //var userInfo = await mediatR.Send(new GetUserInfoQuery() { UserId = userId });
+            var userInfo = await userRepository.GetUserInfo(userId);
             return Ok(userInfo);
         }
 

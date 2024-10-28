@@ -1,4 +1,4 @@
-﻿using FoodShop.Application.Services;
+﻿using FoodShop.Application.Services.Payment;
 using FoodShop.Application.Services.Payment.ZaloPay;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -84,7 +84,7 @@ namespace FoodShop.API.Controllers
         [HttpPost("create-order-paymentservice")]
         public async Task<IActionResult> CreatePaymentService(long amount, string descripton, string order_id)
         {
-            var (success, link) = await paymentService.CreatePaymentLinkAsync(amount, descripton, order_id);
+            var (success, link) = await paymentService.CreateZaloPaymentLinkAsync(amount, descripton, order_id);
             if(success)
             {
                 return Ok("order-link: " + link);
