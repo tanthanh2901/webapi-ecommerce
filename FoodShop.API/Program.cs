@@ -1,5 +1,6 @@
 using FoodShop.API.Services;
 using FoodShop.Application;
+using FoodShop.Application.Feature.Notification;
 using FoodShop.Application.Services.Payment.ZaloPay;
 using FoodShop.Domain.Entities;
 using FoodShop.Infrastructure;
@@ -130,6 +131,8 @@ app.UseRouting();
 
 app.UseSession();
 app.UseAuthorization();
+
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.MapControllers();
 

@@ -20,8 +20,8 @@ namespace FoodShop.Persistence
             Orders = orders;
             OrderDetails = orderDetails;
             Products = products;
-            Payment = payment;
-            PaymentMethod = paymentMethod;
+            Payments = payment;
+            PaymentMethods = paymentMethod;
         }
 
         public DbSet<AppUser> AppUsers { get; set; }
@@ -31,8 +31,9 @@ namespace FoodShop.Persistence
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Product> Products { get; set; }
-        public DbSet<Payment> Payment { get; set; }
-        public DbSet<PaymentMethod> PaymentMethod { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -80,7 +81,6 @@ namespace FoodShop.Persistence
                 .HasOne(ci => ci.Product)
                 .WithMany()
                 .HasForeignKey(ci => ci.ProductId);
-
         }
     }
 }

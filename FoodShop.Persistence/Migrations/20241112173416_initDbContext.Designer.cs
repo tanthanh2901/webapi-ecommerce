@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodShop.Persistence.Migrations
 {
     [DbContext(typeof(FoodShopDbContext))]
-    [Migration("20241027174415_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241112173416_initDbContext")]
+    partial class initDbContext
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -217,6 +217,37 @@ namespace FoodShop.Persistence.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("FoodShop.Domain.Entities.Notification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"), 1L, 1);
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("FoodShop.Domain.Entities.Order", b =>
                 {
                     b.Property<int>("OrderId")
@@ -321,7 +352,7 @@ namespace FoodShop.Persistence.Migrations
                     b.HasIndex("OrderId")
                         .IsUnique();
 
-                    b.ToTable("Payment");
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("FoodShop.Domain.Entities.PaymentMethod", b =>
@@ -339,7 +370,7 @@ namespace FoodShop.Persistence.Migrations
 
                     b.HasKey("MethodId");
 
-                    b.ToTable("PaymentMethod");
+                    b.ToTable("PaymentMethods");
                 });
 
             modelBuilder.Entity("FoodShop.Domain.Entities.Product", b =>
@@ -521,6 +552,17 @@ namespace FoodShop.Persistence.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("FoodShop.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("FoodShop.Domain.Entities.AppUser", "AppUser")
+                        .WithMany("Notifications")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
             modelBuilder.Entity("FoodShop.Domain.Entities.Order", b =>
                 {
                     b.HasOne("FoodShop.Domain.Entities.AppUser", "User")
@@ -636,6 +678,8 @@ namespace FoodShop.Persistence.Migrations
                 {
                     b.Navigation("Cart")
                         .IsRequired();
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("Orders");
                 });

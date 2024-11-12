@@ -1,6 +1,9 @@
-﻿using FoodShop.Application.Dto;
+﻿using FoodShop.Application.Contract.Persistence;
+using FoodShop.Application.Dto;
+using FoodShop.Application.Feature.Notification;
 using FoodShop.Domain.Entities;
 using FoodShop.Domain.Enum;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoodShop.Persistence.Repositories
@@ -8,10 +11,13 @@ namespace FoodShop.Persistence.Repositories
     internal class OrderRepository : IOrderRepository
     {
         private readonly FoodShopDbContext dbContext;
+        private readonly INotificationRepository notificationRepository;
 
-        public OrderRepository(FoodShopDbContext dbContext)
+
+        public OrderRepository(FoodShopDbContext dbContext, INotificationRepository notificationRepository)
         {
             this.dbContext = dbContext;
+            this.notificationRepository = notificationRepository;
         }
         public async Task<Order> CreateOrderAsync(Order order)
         {
@@ -96,6 +102,17 @@ namespace FoodShop.Persistence.Repositories
             order.Status = status;
             dbContext.Orders.Update(order);
             await dbContext.SaveChangesAsync();
+
+            Notification notification = new Notification
+            {
+                AppUserId = order.UserId,
+                Message = $"Your order #{orderId} status has been updated to {status}.",
+                Timestamp = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            await notificationRepository.AddAsync(notification);
+
             return true;
 
         }

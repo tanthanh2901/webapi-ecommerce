@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace FoodShop.Persistence.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class initDbContext : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -71,7 +71,7 @@ namespace FoodShop.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentMethod",
+                name: "PaymentMethods",
                 columns: table => new
                 {
                     MethodId = table.Column<int>(type: "int", nullable: false)
@@ -80,7 +80,7 @@ namespace FoodShop.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PaymentMethod", x => x.MethodId);
+                    table.PrimaryKey("PK_PaymentMethods", x => x.MethodId);
                 });
 
             migrationBuilder.CreateTable(
@@ -209,6 +209,29 @@ namespace FoodShop.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    NotificationId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    AppUserId = table.Column<int>(type: "int", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.NotificationId);
+                    table.ForeignKey(
+                        name: "FK_Notifications_AspNetUsers_AppUserId",
+                        column: x => x.AppUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
                 {
@@ -261,7 +284,7 @@ namespace FoodShop.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payment",
+                name: "Payments",
                 columns: table => new
                 {
                     PaymentId = table.Column<int>(type: "int", nullable: false)
@@ -275,17 +298,17 @@ namespace FoodShop.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Payment", x => x.PaymentId);
+                    table.PrimaryKey("PK_Payments", x => x.PaymentId);
                     table.ForeignKey(
-                        name: "FK_Payment_Orders_OrderId",
+                        name: "FK_Payments_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "OrderId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Payment_PaymentMethod_MethodId",
+                        name: "FK_Payments_PaymentMethods_MethodId",
                         column: x => x.MethodId,
-                        principalTable: "PaymentMethod",
+                        principalTable: "PaymentMethods",
                         principalColumn: "MethodId",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -402,6 +425,11 @@ namespace FoodShop.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Notifications_AppUserId",
+                table: "Notifications",
+                column: "AppUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_OrderId",
                 table: "OrderDetails",
                 column: "OrderId");
@@ -417,13 +445,13 @@ namespace FoodShop.Persistence.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payment_MethodId",
-                table: "Payment",
+                name: "IX_Payments_MethodId",
+                table: "Payments",
                 column: "MethodId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payment_OrderId",
-                table: "Payment",
+                name: "IX_Payments_OrderId",
+                table: "Payments",
                 column: "OrderId",
                 unique: true);
 
@@ -454,10 +482,13 @@ namespace FoodShop.Persistence.Migrations
                 name: "CartItems");
 
             migrationBuilder.DropTable(
+                name: "Notifications");
+
+            migrationBuilder.DropTable(
                 name: "OrderDetails");
 
             migrationBuilder.DropTable(
-                name: "Payment");
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -472,7 +503,7 @@ namespace FoodShop.Persistence.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "PaymentMethod");
+                name: "PaymentMethods");
 
             migrationBuilder.DropTable(
                 name: "Categories");

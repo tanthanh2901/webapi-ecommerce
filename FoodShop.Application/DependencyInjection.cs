@@ -19,7 +19,7 @@ namespace FoodShop.Application
                 client.BaseAddress = new Uri("https://api.exchangeratesapi.io/");
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
             });
-
+            services.AddSignalR();
             return services;
         }
     }

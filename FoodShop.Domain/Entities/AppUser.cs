@@ -25,6 +25,8 @@ namespace FoodShop.Domain.Entities
 
         public string ShipName { get; set; } = string.Empty;
         public string ShipAddress { get; set; } = string.Empty;
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
 
     }
 }

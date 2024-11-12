@@ -24,14 +24,14 @@ namespace FoodShop.Persistence.Repositories
             payment.PaymentDate = paymentDto.PaymentDate;
             payment.Status = paymentDto.Status;
 
-            dbContext.Payment.Add(payment);
+            dbContext.Payments.Add(payment);
             await dbContext.SaveChangesAsync();
             return true;
         }
 
         public async Task<PaymentDto> GetPaymentByTransId(string transId)
         {
-            var payment = await dbContext.Payment.FirstOrDefaultAsync(p => p.TransactionId == transId);
+            var payment = await dbContext.Payments.FirstOrDefaultAsync(p => p.TransactionId == transId);
             return new PaymentDto
             {
                 Amount = payment.Amount,

@@ -1,8 +1,10 @@
 ﻿using FoodShop.Application.Contract.Persistence;
 using FoodShop.Application.Dto;
+using FoodShop.Application.Feature.Notification;
 using FoodShop.Application.Services;
 using FoodShop.Application.Services.Payment;
 using FoodShop.Domain.Entities;
+using Microsoft.AspNetCore.SignalR;
 
 namespace FoodShop.Persistence.Repositories
 {
@@ -14,11 +16,21 @@ namespace FoodShop.Persistence.Repositories
         private readonly IUserRepository userRepository;
         private readonly IPaymentMethodRepository paymentMethodRepository;
         private readonly IPaymentRepository paymentRepository;
+        private readonly INotificationRepository notificationRepository;
         private readonly CurrencyExchangeService currencyExchangeService;
         private readonly FoodShopDbContext dbContext;
 
 
-        public CheckoutService(ICartRepository cartRepository, IOrderRepository orderRepository, IPaymentService paymentService, IUserRepository userRepository, IPaymentMethodRepository paymentMethodRepository, CurrencyExchangeService currencyExchangeService, FoodShopDbContext dbContext, IPaymentRepository paymentRepository)
+        public CheckoutService(
+            ICartRepository cartRepository, 
+            IOrderRepository orderRepository, 
+            IPaymentService paymentService, 
+            IUserRepository userRepository, 
+            IPaymentMethodRepository paymentMethodRepository, 
+            CurrencyExchangeService currencyExchangeService, 
+            FoodShopDbContext dbContext, 
+            IPaymentRepository paymentRepository, 
+            INotificationRepository notificationRepository)
         {
             _cartRepository = cartRepository;
             _orderRepository = orderRepository;
@@ -28,10 +40,16 @@ namespace FoodShop.Persistence.Repositories
             this.currencyExchangeService = currencyExchangeService;
             this.dbContext = dbContext;
             this.paymentRepository = paymentRepository;
+            this.notificationRepository = notificationRepository;
         }
 
         public async Task<(Order order, string orderLink)> ProcessCheckoutAsync(int userId, int paymentMethodId)
         {
+            if (userId == null)
+            {
+                throw new ArgumentNullException(nameof(userId), "User ID is required for notification.");
+            }
+
             // Get the user's cart
             var cartItems = await _cartRepository.GetCartItems(userId);
             if (!cartItems.Any())
@@ -80,14 +98,31 @@ namespace FoodShop.Persistence.Repositories
                 Status = order.Status.ToString()
             };
 
+            Notification notification = new Notification
+            {
+                AppUserId = userId,
+                Message = $"Your order #{order.OrderId} has been placed successfully!",
+                Timestamp = DateTime.UtcNow,
+                IsRead = false
+            };
+
             switch (paymentMethod.MethodName)
             {
                 case "cod":
                     order = await _orderRepository.CreateOrderAsync(order);
                     payment.OrderId = order.OrderId;
                     await paymentRepository.AddPayment(payment);
+                    //await _cartRepository.ClearCartAsync(userId);
 
-                    await _cartRepository.ClearCartAsync(userId);
+                    //Notification notification = new Notification
+                    //{
+                    //    UserId = userId,
+                    //    Message = $"Your order #{order.OrderId} has been placed successfully!",
+                    //    Timestamp = DateTime.UtcNow,
+                    //    IsRead = false
+                    //};
+                    await notificationRepository.AddAsync(notification);
+
                     return (order, "Check out successfully");
                 case "zalopay":
                     order = await _orderRepository.CreateOrderAsync(order);
