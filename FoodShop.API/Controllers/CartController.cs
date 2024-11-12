@@ -164,13 +164,13 @@ namespace FoodShop.API.Controllers
         }
 
         [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout(string paymentMethod)
+        public async Task<IActionResult> Checkout(int paymentMethodId)
         {
             var userId = await GetUserId();
 
             try
             {
-                var (order, orderLink) = await _checkoutService.ProcessCheckoutAsync(userId, paymentMethod);
+                var (order, orderLink) = await _checkoutService.ProcessCheckoutAsync(userId, paymentMethodId);
                 return Ok(new { OrderId = order.OrderId, orderLink = orderLink, Message = "Checkout successful" });
             }
             catch (InvalidOperationException ex)

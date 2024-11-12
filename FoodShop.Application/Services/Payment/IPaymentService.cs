@@ -1,35 +1,39 @@
-﻿using FoodShop.Application.Services.Payment.ZaloPay;
-using FoodShop.Domain.Entities;
+﻿using FoodShop.Application.Contract.Persistence;
+using FoodShop.Application.Dto;
+using FoodShop.Application.Services.Payment.ZaloPay;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace FoodShop.Application.Services.Payment
 {
     public interface IPaymentService
     {
-        Task<(bool Success, string MessageOrLink)> CreateZaloPaymentLinkAsync(long amount, string description, string order_id);
+        Task<(bool Success, string MessageOrLink)> CreateZaloPaymentLinkAsync(PaymentDto paymentDto);
         Task<(bool Success, string StatusMessage)> CheckZaloPaymentStatusAsync(string appTransId);
     }
 
     public class PaymentService : IPaymentService
     {
-        private readonly ZaloPayConfig _zaloPayConfig;
-        public PaymentService(IOptions<ZaloPayConfig> zaloPayConfig)
+        private readonly ZaloPayConfig _zaloPayConfig; 
+        private readonly IPaymentRepository paymentRepository;
+
+        public PaymentService(IOptions<ZaloPayConfig> zaloPayConfig, IPaymentRepository paymentRepository = null)
         {
             _zaloPayConfig = zaloPayConfig.Value;
+            this.paymentRepository = paymentRepository;
         }
-        public async Task<(bool Success, string MessageOrLink)> CreateZaloPaymentLinkAsync(long amount, string description, string orderId)
-        {
+        public async Task<(bool Success, string MessageOrLink)> CreateZaloPaymentLinkAsync(PaymentDto paymentDto) {
             var zalopay_Params = new Dictionary<string, object>
             {
                 { "appid", _zaloPayConfig.AppId },
-                { "apptransid", $"{DateTime.Now:yyMMdd}_{orderId}" },
+                { "apptransid", paymentDto.TransactionId},
                 { "apptime", DateTimeOffset.Now.ToUnixTimeMilliseconds() },
                 { "appuser", _zaloPayConfig.AppUser },
-                { "amount", amount },
-                { "description", $"Thanh toan don hang #{orderId}" },
+                { "amount", (long)paymentDto.Amount },
+                { "description", $"Thanh toan don hang #{paymentDto.OrderId}" },
                 { "bankcode", "zalopayapp" }
             };
 
@@ -60,7 +64,7 @@ namespace FoodShop.Application.Services.Payment
                 var result = JsonConvert.DeserializeObject<ZaloPayResponse>(jsonResponse);
 
                 if (result.returnCode == 1)
-                {
+                {                  
                     return (true, result.orderUrl);
                 }
                 else
@@ -74,10 +78,7 @@ namespace FoodShop.Application.Services.Payment
             }
         }
 
-        private string GenerateAppTransId()
-        {
-            return DateTime.UtcNow.ToString("yyMMdd") + "_" + new Random().Next(100000, 999999).ToString();
-        }
+       
 
         private string ComputeHmacSha256(string key, string rawData)
         {
@@ -110,7 +111,7 @@ namespace FoodShop.Application.Services.Payment
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var responseData = JsonConvert.DeserializeObject<ZaloPayResponse>(responseContent);
+                    var responseData = JsonConvert.DeserializeObject<CheckStatusResponse>(responseContent);
 
                     if (responseData.returnCode == 1)
                     {
@@ -131,7 +132,5 @@ namespace FoodShop.Application.Services.Payment
                 return (false, ex.Message);
             }
         }
-        
-
     }
 }

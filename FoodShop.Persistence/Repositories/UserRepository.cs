@@ -48,7 +48,7 @@ namespace FoodShop.Persistence.Repositories
                 ShipName = appUser.ShipName,
                 ShipAddress = appUser.ShipAddress,
                 PhoneNumber = appUser.PhoneNumber,
-                 Roles = roles.ToList()
+                Roles = roles.ToList()
             };
 
         }

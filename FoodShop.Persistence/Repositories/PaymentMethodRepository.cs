@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FoodShop.Application.Contract.Persistence;
+using FoodShop.Domain.Entities;
 
 namespace FoodShop.Persistence.Repositories
 {
-    internal class PaymentMethodRepository
+    public class PaymentMethodRepository : BaseRepository<PaymentMethod>, IPaymentMethodRepository
     {
+        public PaymentMethodRepository(FoodShopDbContext dbContext) : base(dbContext)
+        {
+        }
     }
 }

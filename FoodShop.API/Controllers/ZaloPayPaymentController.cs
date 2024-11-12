@@ -1,5 +1,7 @@
-﻿using FoodShop.Application.Services.Payment;
+﻿using FoodShop.Application.Dto;
+using FoodShop.Application.Services.Payment;
 using FoodShop.Application.Services.Payment.ZaloPay;
+using FoodShop.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -82,12 +84,26 @@ namespace FoodShop.API.Controllers
             }
         }
         [HttpPost("create-order-paymentservice")]
-        public async Task<IActionResult> CreatePaymentService(long amount, string descripton, string order_id)
+        public async Task<IActionResult> CreatePaymentService(PaymentDto payment)
         {
-            var (success, link) = await paymentService.CreateZaloPaymentLinkAsync(amount, descripton, order_id);
+            var (success, link) = await paymentService.CreateZaloPaymentLinkAsync(payment);
             if(success)
             {
                 return Ok("order-link: " + link);
+            }
+            else
+            {
+                return BadRequest(link);
+            }
+        }
+
+        [HttpPost("check-payment")]
+        public async Task<IActionResult> CheckPaymentService(string transId)
+        {
+            var (success, link) = await paymentService.CheckZaloPaymentStatusAsync(transId);
+            if (success)
+            {
+                return Ok("message: " + link);
             }
             else
             {

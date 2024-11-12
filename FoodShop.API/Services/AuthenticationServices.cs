@@ -23,7 +23,7 @@ namespace FoodShop.API.Services
                     Secure = true,
                     IsEssential = true,
                     SameSite = SameSiteMode.None,
-                });
+                });          
         }
     }
 }

@@ -83,6 +83,7 @@ namespace FoodShop.API.Controllers
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken(TokenDto tokenDto)
         {
+           
             var newTokens = await authenRepository.RefreshToken(tokenDto);
 
             // Set the new tokens in cookies
@@ -93,8 +94,4 @@ namespace FoodShop.API.Controllers
 
 
     }
-
-
-
-
 }

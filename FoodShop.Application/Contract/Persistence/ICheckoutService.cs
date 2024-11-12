@@ -4,6 +4,6 @@ namespace FoodShop.Application.Contract.Persistence
 {
     public interface ICheckoutService
     {
-        Task<(Order order, string orderLink)> ProcessCheckoutAsync(int userId, string paymentMethod);
+        Task<(Order order, string orderLink)> ProcessCheckoutAsync(int userId, int paymentMethodId);
     }
 }

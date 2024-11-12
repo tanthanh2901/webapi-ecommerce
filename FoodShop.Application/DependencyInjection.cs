@@ -14,6 +14,12 @@ namespace FoodShop.Application
             services.AddScoped<RoleServices>();
             services.AddScoped<IPaymentService, PaymentService>();
 
+            services.AddHttpClient<CurrencyExchangeService>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.exchangeratesapi.io/");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+            });
+
             return services;
         }
     }

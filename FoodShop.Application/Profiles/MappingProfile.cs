@@ -21,7 +21,8 @@ namespace FoodShop.Application.Profiles
             CreateMap<Order, OrderDto>().ReverseMap();
             CreateMap<OrderDetail, OrderDetailDto>().ReverseMap();
             CreateMap<Order, OrderDto>()
-            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderDetail));
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderDetail));
+            CreateMap<Payment, PaymentDto>().ReverseMap();
 
             CreateMap<CreateProductCommand, Product>().ReverseMap();
             CreateMap<UpdateProductCommand, Product>().ReverseMap();
