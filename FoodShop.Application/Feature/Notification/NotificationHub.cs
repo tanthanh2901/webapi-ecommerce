@@ -6,7 +6,7 @@ namespace FoodShop.Application.Feature.Notification
     {
         public async Task SendNotification(int userId, string message)
         {
-            await hubContext.Clients.User(userId.ToString()).SendAsync("RecieveNotification", message);
+            await Clients.User(userId.ToString()).SendAsync("RecieveNotification", message);
         }      
     }
 }

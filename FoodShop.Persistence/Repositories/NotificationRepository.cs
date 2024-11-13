@@ -1,7 +1,6 @@
 ﻿using FoodShop.Application.Contract.Persistence;
 using FoodShop.Application.Feature.Notification;
 using FoodShop.Domain.Entities;
-using Microsoft.AspNetCore.SignalR;
 
 namespace FoodShop.Persistence.Repositories
 {
