@@ -2,34 +2,11 @@
 
 namespace FoodShop.Application.Feature.Notification
 {
-    public sealed class NotificationHub : Hub<INotificationHub>
+    public sealed class NotificationHub : Hub   
     {
-        public override async Task OnConnectedAsync()
+        public async Task SendNotification(int userId, string message)
         {
-            // Assume user's ID is passed as a query parameter or claim in production
-            var userId = Context.UserIdentifier;
-            if (userId != null)
-            {
-                await Groups.AddToGroupAsync(Context.ConnectionId, userId);
-            }
-            await base.OnConnectedAsync();
-        }
-
-        public override async Task OnDisconnectedAsync(Exception exception)
-        {
-            var userId = Context.UserIdentifier;
-            if (userId != null)
-            {
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
-            }
-            await base.OnDisconnectedAsync(exception);
-        }
-
-        public async Task RecieveNotification(int userId, string message)
-        {
-            await Clients.Group(userId.ToString()).RecieveNotification(message);
-        }
-
-       
+            await hubContext.Clients.User(userId.ToString()).SendAsync("RecieveNotification", message);
+        }      
     }
 }

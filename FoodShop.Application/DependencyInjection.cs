@@ -1,4 +1,5 @@
-﻿using FoodShop.Application.Services;
+﻿using FoodShop.Application.Feature.Notification;
+using FoodShop.Application.Services;
 using FoodShop.Application.Services.Payment;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,6 +21,8 @@ namespace FoodShop.Application
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
             });
             services.AddSignalR();
+            services.AddScoped<NotificationService>();
+
             return services;
         }
     }

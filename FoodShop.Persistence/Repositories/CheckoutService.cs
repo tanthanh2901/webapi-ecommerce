@@ -22,14 +22,14 @@ namespace FoodShop.Persistence.Repositories
 
 
         public CheckoutService(
-            ICartRepository cartRepository, 
-            IOrderRepository orderRepository, 
-            IPaymentService paymentService, 
-            IUserRepository userRepository, 
-            IPaymentMethodRepository paymentMethodRepository, 
-            CurrencyExchangeService currencyExchangeService, 
-            FoodShopDbContext dbContext, 
-            IPaymentRepository paymentRepository, 
+            ICartRepository cartRepository,
+            IOrderRepository orderRepository,
+            IPaymentService paymentService,
+            IUserRepository userRepository,
+            IPaymentMethodRepository paymentMethodRepository,
+            CurrencyExchangeService currencyExchangeService,
+            FoodShopDbContext dbContext,
+            IPaymentRepository paymentRepository,
             INotificationRepository notificationRepository)
         {
             _cartRepository = cartRepository;
@@ -98,13 +98,6 @@ namespace FoodShop.Persistence.Repositories
                 Status = order.Status.ToString()
             };
 
-            Notification notification = new Notification
-            {
-                AppUserId = userId,
-                Message = $"Your order #{order.OrderId} has been placed successfully!",
-                Timestamp = DateTime.UtcNow,
-                IsRead = false
-            };
 
             switch (paymentMethod.MethodName)
             {
@@ -112,16 +105,9 @@ namespace FoodShop.Persistence.Repositories
                     order = await _orderRepository.CreateOrderAsync(order);
                     payment.OrderId = order.OrderId;
                     await paymentRepository.AddPayment(payment);
-                    //await _cartRepository.ClearCartAsync(userId);
+                    await _cartRepository.ClearCartAsync(userId);
 
-                    //Notification notification = new Notification
-                    //{
-                    //    UserId = userId,
-                    //    Message = $"Your order #{order.OrderId} has been placed successfully!",
-                    //    Timestamp = DateTime.UtcNow,
-                    //    IsRead = false
-                    //};
-                    await notificationRepository.AddAsync(notification);
+                    await notificationRepository.AddNotificationAsync(1, $"A new order #{order.OrderId} has been placed.");
 
                     return (order, "Check out successfully");
                 case "zalopay":

@@ -4,6 +4,6 @@ namespace FoodShop.Application.Contract.Persistence
 {
     public interface INotificationRepository
     {
-        Task<Notification> AddAsync(Notification entity);
+        Task<Notification> AddNotificationAsync(int userId, string message);
     }
 }

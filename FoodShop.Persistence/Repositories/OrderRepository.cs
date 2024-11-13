@@ -103,15 +103,7 @@ namespace FoodShop.Persistence.Repositories
             dbContext.Orders.Update(order);
             await dbContext.SaveChangesAsync();
 
-            Notification notification = new Notification
-            {
-                AppUserId = order.UserId,
-                Message = $"Your order #{orderId} status has been updated to {status}.",
-                Timestamp = DateTime.UtcNow,
-                IsRead = false
-            };
-
-            await notificationRepository.AddAsync(notification);
+            await notificationRepository.AddNotificationAsync(order.UserId, $"Your order #{orderId} status has been updated to {status}.");
 
             return true;
 
