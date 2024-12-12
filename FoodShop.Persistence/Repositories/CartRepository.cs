@@ -1,7 +1,6 @@
 ﻿using FoodShop.Application.Contract.Persistence;
 using FoodShop.Domain.Entities;
 using FoodShop.Domain.Enum;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoodShop.Persistence.Repositories
@@ -11,21 +10,10 @@ namespace FoodShop.Persistence.Repositories
         private readonly FoodShopDbContext dbContext;
         private readonly IProductRepository productRepository;
 
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public CartRepository(FoodShopDbContext dbContext, IProductRepository productRepository, IHttpContextAccessor httpContextAccessor)
+        public CartRepository(FoodShopDbContext dbContext, IProductRepository productRepository)
         {
             this.dbContext = dbContext;
             this.productRepository = productRepository;
-            _httpContextAccessor = httpContextAccessor;
-
-        }
-
-        public int GetUserId()
-        {
-            var user = _httpContextAccessor.HttpContext.User;
-            var userID = int.Parse(user.Claims.First(c => c.Type == "userId").Value);
-            return userID;
         }
 
         public async Task ClearCartAsync(int userId)

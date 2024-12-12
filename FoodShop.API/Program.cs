@@ -28,7 +28,7 @@ builder.Services.AddIdentity<AppUser, AppRole>()
 builder.Services
     .AddApplicationServices()
     .AddPersistenceServices(builder.Configuration)
-    .AddInfrastructureServices();
+    .AddInfrastructureServices(builder.Configuration);
 
 builder.Services.AddAntiforgery(options =>
 {

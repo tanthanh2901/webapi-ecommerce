@@ -16,15 +16,15 @@ namespace FoodShop.API.Controllers
     {
         private readonly ICartRepository cartRepository;
         private readonly IMediator mediator; 
-        private readonly UserManager<AppUser> _userManager;
         private readonly ICheckoutService _checkoutService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CartController(ICartRepository cartRepository, IMediator mediator, UserManager<AppUser> userManager, ICheckoutService checkoutService)
+        public CartController(ICartRepository cartRepository, IMediator mediator, ICheckoutService checkoutService, IHttpContextAccessor httpContextAccessor)
         {
             this.cartRepository = cartRepository;
             this.mediator = mediator;
-            _userManager = userManager;
             _checkoutService = checkoutService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         //[HttpPost]
@@ -93,17 +93,17 @@ namespace FoodShop.API.Controllers
         //    // Return a success response
         //    return Ok(new { message = "Cart cleared successfully." });
         //}
-
-        private async Task<int> GetUserId()
+        private int GetUserId()
         {
-            var user = await _userManager.GetUserAsync(User);
-            return (int)(user?.Id);
+            var user = _httpContextAccessor.HttpContext.User;
+            var userID = int.Parse(user.Claims.First(c => c.Type == "userId").Value);
+            return userID;
         }
 
         [HttpPost("addToCart")]
         public async Task<IActionResult> AddToCart(int productId, int quantity)
         {
-            var userId = await GetUserId();
+            var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
             await cartRepository.AddToCart(userId, productId, quantity);
@@ -114,7 +114,7 @@ namespace FoodShop.API.Controllers
         public async Task<IActionResult> GetCart()
         
         {
-            var userId = await GetUserId();
+            var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
             //var cartItems = await cartRepository.GetCartItems(userId);
@@ -125,7 +125,7 @@ namespace FoodShop.API.Controllers
         [HttpGet("GetNumberOfCartItem")]
         public async Task<IActionResult> GetNumberOfCartItem()
         {
-            var userId = await GetUserId();
+            var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
             var number = await cartRepository.GetNumberOfCartItem(userId);
@@ -135,7 +135,7 @@ namespace FoodShop.API.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> UpdateCartItem(int cartItemId, int quantity)
         {
-            var userId = await GetUserId();
+            var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
             await cartRepository.UpdateCartItem(userId, cartItemId, quantity);
@@ -146,7 +146,7 @@ namespace FoodShop.API.Controllers
         [HttpDelete("remove")]
         public async Task<IActionResult> RemoveFromCart(int productId)
         {
-            var userId = await GetUserId();
+            var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
             await cartRepository.RemoveFromCart(userId, productId);
@@ -156,29 +156,12 @@ namespace FoodShop.API.Controllers
         [HttpDelete("clear")]
         public async Task<IActionResult> ClearCart()
         {
-            var userId = await GetUserId();
+            var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
             await cartRepository.ClearCartAsync(userId);
             return Ok(new { message = "Cart cleared successfully" });
         }
-
-        [HttpPost("checkout")]
-        public async Task<IActionResult> Checkout(int paymentMethodId)
-        {
-            var userId = await GetUserId();
-
-            try
-            {
-                var (order, orderLink) = await _checkoutService.ProcessCheckoutAsync(userId, paymentMethodId);
-                return Ok(new { OrderId = order.OrderId, orderLink = orderLink, Message = "Checkout successful" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-        }
-
         
     }
 }

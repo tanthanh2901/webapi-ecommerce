@@ -41,6 +41,7 @@ namespace FoodShop.Persistence.Repositories
 
             return new UserDto
             {
+                UserId = userId,
                 UserName = appUser.UserName,
                 FirstName = appUser.FirstName,
                 LastName = appUser.LastName,

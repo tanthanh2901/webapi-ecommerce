@@ -89,9 +89,11 @@ namespace FoodShop.API.Controllers
         }
 
         [HttpGet("products")]
-        public async Task<ActionResult<List<Product>>> GetAllProducts()
+        public async Task<ActionResult<List<Product>>> GetAllProducts(int pageNumber = 1, 
+            int pageSize = 10)
         {
-            var allProducts = await mediatR.Send(new GetAllProductQuery());
+            var allProducts = await mediatR
+                .Send(new GetAllProductQuery() { PageNumber = pageNumber, PageSize = pageSize});
             return Ok(allProducts);
         }
 
@@ -103,7 +105,7 @@ namespace FoodShop.API.Controllers
         }
 
         [HttpPost("products/create")]
-        public async Task<ActionResult<int>> Create(CreateProductCommand createrProductCommand)
+        public async Task<ActionResult<int>> Create([FromForm] CreateProductCommand createrProductCommand)
         {
             var id = await mediatR.Send(createrProductCommand);
             return Ok(id);
@@ -172,9 +174,9 @@ namespace FoodShop.API.Controllers
         }
 
         [HttpDelete("categories/delete")]
-        public async Task<ActionResult> DeleteCategory(int id)
+        public async Task<ActionResult> DeleteCategory(int categoryId)
         {
-            var deleteCategoryCommand = new DeleteCategoryCommand() { CategoryId = id };
+            var deleteCategoryCommand = new DeleteCategoryCommand() { CategoryId = categoryId };
             await mediatR.Send(deleteCategoryCommand);
             return NoContent();
         }

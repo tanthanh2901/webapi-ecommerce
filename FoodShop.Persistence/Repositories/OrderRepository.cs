@@ -48,7 +48,7 @@ namespace FoodShop.Persistence.Repositories
                     OrderDate = o.OrderDate,
                     TotalAmount = o.TotalAmount,
                     Status = o.Status,
-                    Items = o.OrderDetail.Select(od => new OrderDetailDto
+                    OrderDetailsDto = o.OrderDetail.Select(od => new OrderDetailDto
                     {
                         OrderId = od.OrderId,
                         ProductId = od.ProductId,
@@ -70,7 +70,7 @@ namespace FoodShop.Persistence.Repositories
                     OrderDate = o.OrderDate,
                     TotalAmount = o.TotalAmount,
                     Status = o.Status,
-                    Items = o.OrderDetail.Select(od => new OrderDetailDto
+                    OrderDetailsDto = o.OrderDetail.Select(od => new OrderDetailDto
                     {
                         OrderId = od.OrderId,
                         ProductId = od.ProductId,

@@ -12,7 +12,9 @@ namespace FoodShop.Application.Profiles
     {
         public MappingProfile() 
         {
-            CreateMap<Product, ProductDetailsDto>().ReverseMap();
+            CreateMap<Product, ProductDetailsDto>()
+                .ForMember(dest => dest.ImageUrl, otp => otp.MapFrom(src => src.ImageUrl))
+                .ReverseMap();
             CreateMap<Product, ProductListDto>().ReverseMap();
             CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<Cart, CartDto>().ReverseMap();
@@ -21,7 +23,7 @@ namespace FoodShop.Application.Profiles
             CreateMap<Order, OrderDto>().ReverseMap();
             CreateMap<OrderDetail, OrderDetailDto>().ReverseMap();
             CreateMap<Order, OrderDto>()
-                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderDetail));
+                .ForMember(dest => dest.OrderDetailsDto, opt => opt.MapFrom(src => src.OrderDetail));
             CreateMap<Payment, PaymentDto>().ReverseMap();
 
             CreateMap<CreateProductCommand, Product>().ReverseMap();

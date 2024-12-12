@@ -4,6 +4,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FoodShop.Application.Contract.Persistence;
 using FoodShop.Domain.Entities;
+using FoodShop.Infrastructure.AWS;
+using FoodShop.Application.Contract.Infrastructure;
 
 namespace FoodShop.API.Controllers
 {
@@ -21,9 +23,11 @@ namespace FoodShop.API.Controllers
         }
 
         [HttpGet(Name ="GetAllProducts")]
-        public async Task<ActionResult<List<Product>>> GetAllProducts()
+        public async Task<ActionResult<List<Product>>> GetAllProducts(int pageNumber = 1,
+            int pageSize = 10)
         {
-            var allProducts = await mediatR.Send(new GetAllProductQuery());
+            var allProducts = await mediatR
+                .Send(new GetAllProductQuery() { PageNumber = pageNumber, PageSize = pageSize });
             return Ok(allProducts);
         }
 

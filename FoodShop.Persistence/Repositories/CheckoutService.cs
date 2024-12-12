@@ -1,10 +1,10 @@
-﻿using FoodShop.Application.Contract.Persistence;
+﻿using AutoMapper;
+using FoodShop.Application.Contract.Persistence;
 using FoodShop.Application.Dto;
-using FoodShop.Application.Feature.Notification;
+using FoodShop.Application.Feature.Payment.Commands;
 using FoodShop.Application.Services;
 using FoodShop.Application.Services.Payment;
 using FoodShop.Domain.Entities;
-using Microsoft.AspNetCore.SignalR;
 
 namespace FoodShop.Persistence.Repositories
 {
@@ -12,46 +12,39 @@ namespace FoodShop.Persistence.Repositories
     {
         private readonly ICartRepository _cartRepository;
         private readonly IOrderRepository _orderRepository;
-        private readonly IPaymentService _paymentService; // Updated to use IPaymentService
         private readonly IUserRepository userRepository;
-        private readonly IPaymentMethodRepository paymentMethodRepository;
         private readonly IPaymentRepository paymentRepository;
+        private readonly IMapper mapper;
         private readonly INotificationRepository notificationRepository;
         private readonly CurrencyExchangeService currencyExchangeService;
-        private readonly FoodShopDbContext dbContext;
-
 
         public CheckoutService(
             ICartRepository cartRepository,
             IOrderRepository orderRepository,
-            IPaymentService paymentService,
             IUserRepository userRepository,
-            IPaymentMethodRepository paymentMethodRepository,
             CurrencyExchangeService currencyExchangeService,
-            FoodShopDbContext dbContext,
             IPaymentRepository paymentRepository,
+            IMapper mapper,
             INotificationRepository notificationRepository)
         {
             _cartRepository = cartRepository;
             _orderRepository = orderRepository;
-            _paymentService = paymentService;
             this.userRepository = userRepository;
-            this.paymentMethodRepository = paymentMethodRepository;
             this.currencyExchangeService = currencyExchangeService;
-            this.dbContext = dbContext;
             this.paymentRepository = paymentRepository;
+            this.mapper = mapper;
             this.notificationRepository = notificationRepository;
         }
 
-        public async Task<(Order order, string orderLink)> ProcessCheckoutAsync(int userId, int paymentMethodId)
+        public async Task<OrderDto> ProcessCheckoutAsync(PlaceOrderRequest placeOrderRequest)
         {
-            if (userId == null)
+            if (placeOrderRequest.UserId == null)
             {
-                throw new ArgumentNullException(nameof(userId), "User ID is required for notification.");
+                throw new ArgumentNullException(nameof(placeOrderRequest.UserId), "User ID is required for notification.");
             }
 
             // Get the user's cart
-            var cartItems = await _cartRepository.GetCartItems(userId);
+            var cartItems = await _cartRepository.GetCartItems(placeOrderRequest.UserId);
             if (!cartItems.Any())
             {
                 throw new InvalidOperationException("Cart is empty");
@@ -67,16 +60,15 @@ namespace FoodShop.Persistence.Repositories
             var exchangeRate = 25000;//await currencyExchangeService.GetUsdToVndRateAsync();
             totalAmount = totalAmount * exchangeRate;
 
-            var user = await userRepository.GetUserInfo(userId);
             // Create order
             var order = new Order
             {
-                UserId = userId,
+                UserId = placeOrderRequest.UserId,
                 OrderDate = DateTime.UtcNow,
                 TotalAmount = totalAmount,
-                ShipAddress = user.ShipAddress,
-                ShipName = user.ShipName,
-                PhoneNumber = user.PhoneNumber,
+                ShipAddress = placeOrderRequest.ShipAddress,
+                ShipName = placeOrderRequest.ShipName,
+                PhoneNumber = placeOrderRequest.PhoneNumber,
                 OrderDetail = cartItems.Select(item => new OrderDetail
                 {
                     ProductId = item.ProductId,
@@ -86,56 +78,32 @@ namespace FoodShop.Persistence.Repositories
                 Status = Domain.Enum.OrderStatus.Pending
             };
 
-            var paymentMethod = await paymentMethodRepository.GetByIdAsync(paymentMethodId);
-            // Process payment
+            order = await _orderRepository.CreateOrderAsync(order);
+
             var payment = new PaymentDto
             {
                 Amount = totalAmount,
-                MethodId = paymentMethodId,
+                MethodId = placeOrderRequest.PaymentMethodId,
                 OrderId = order.OrderId,
                 PaymentDate = order.OrderDate,
                 TransactionId = GenerateAppTransId(),
                 Status = order.Status.ToString()
             };
+            payment.OrderId = order.OrderId;
 
+            await paymentRepository.AddPayment(payment);
 
-            switch (paymentMethod.MethodName)
-            {
-                case "cod":
-                    order = await _orderRepository.CreateOrderAsync(order);
-                    payment.OrderId = order.OrderId;
-                    await paymentRepository.AddPayment(payment);
-                    await _cartRepository.ClearCartAsync(userId);
+            return mapper.Map<OrderDto>(order);          
 
-                    await notificationRepository.AddNotificationAsync(1, $"A new order #{order.OrderId} has been placed.");
+        }
 
-                    return (order, "Check out successfully");
-                case "zalopay":
-                    order = await _orderRepository.CreateOrderAsync(order);
+        public async Task UpdateDbWhenPaymentSuccess(OrderDto orderDto)
+        {
+            await _cartRepository.ClearCartAsync(orderDto.UserId);
 
-                    payment.OrderId = order.OrderId;
-                    await paymentRepository.AddPayment(payment);
-
-                    var (success, result) = await _paymentService.CreateZaloPaymentLinkAsync(payment);
-                    
-                    if (!success)
-                    {
-                        throw new InvalidOperationException(result);
-                    }
-                    return (order, result);             
-            }
-            //var (statusSuccess, paymentStatusMessage) = await _paymentService.CheckZaloPaymentStatusAsync(GenerateAppTransId(order));
-            //if(!statusSuccess)
-            //{
-            //    order.Status = Domain.Enum.OrderStatus.Canceled;
-            //    await _orderRepository.UpdateOrderStatusAsync(order.OrderId, Domain.Enum.OrderStatus.Canceled);
-            //    throw new InvalidOperationException($"Payment failed: {paymentStatusMessage}");
-            //}
-
-            //order.Status = Domain.Enum.OrderStatus.Confirmed;
-            //await _orderRepository.UpdateOrderStatusAsync(order.OrderId, Domain.Enum.OrderStatus.Confirmed);
-
-            throw new InvalidOperationException("Invalid payment method");
+            // Send notification to admin (assumed admin ID is 1)
+            await notificationRepository
+                .AddNotificationAsync(1, $"A new order #{orderDto.OrderId} has been placed.");
         }
 
         private string GenerateAppTransId()

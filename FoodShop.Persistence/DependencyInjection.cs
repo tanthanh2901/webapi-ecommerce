@@ -20,9 +20,7 @@ namespace FoodShop.Persistence
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAuthenRepository, AuthenRepository>();
             services.AddScoped<ICartRepository, CartRepository>();
-            services.AddScoped<ICheckoutService, CheckoutService>();
             services.AddScoped<IOrderRepository, OrderRepository>();
-            services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAdminRepository, AdminRepository>(); 
             services.AddScoped<ICheckoutService, CheckoutService>();

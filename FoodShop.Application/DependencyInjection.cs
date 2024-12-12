@@ -1,6 +1,8 @@
 ﻿using FoodShop.Application.Feature.Notification;
+using FoodShop.Application.Feature.Payment.VnPay;
 using FoodShop.Application.Services;
 using FoodShop.Application.Services.Payment;
+using FoodShop.Application.Services.Payment.ZaloPay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FoodShop.Application
@@ -13,7 +15,10 @@ namespace FoodShop.Application
             services.AddAutoMapper(assembly);
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assembly));
             services.AddScoped<RoleServices>();
+
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IVnPayService>(provider => provider.GetService<IPaymentService>());
+            services.AddScoped<IZaloPayService>(provider => provider.GetService<IPaymentService>());
 
             services.AddHttpClient<CurrencyExchangeService>(client =>
             {
@@ -22,7 +27,7 @@ namespace FoodShop.Application
             });
             services.AddSignalR();
             services.AddScoped<NotificationService>();
-
+            services.AddHttpContextAccessor();
             return services;
         }
     }

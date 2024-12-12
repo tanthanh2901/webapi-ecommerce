@@ -1,13 +1,6 @@
 ﻿using FoodShop.Application.Common;
-using FoodShop.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FoodShop.Domain.Entities
 {
@@ -25,10 +18,11 @@ namespace FoodShop.Domain.Entities
 
         [MaxLength(500)]
         public string Description { get; set; }
+        public string ImageUrl { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; }
-
+        
         public int Stock { get; set; }
 
         public Category Category { get; set; }
