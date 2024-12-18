@@ -21,13 +21,15 @@ namespace FoodShop.API.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly IAuthenRepository authenRepository;
         private readonly AuthenticationServices authenticationService;
+        private readonly IJwtProvider jwtProvider;
 
-        public AuthenticationController(IMediator mediatR, IAuthenRepository authenRepository, AuthenticationServices authenticationService, UserManager<AppUser> userManager)
+        public AuthenticationController(IMediator mediatR, IAuthenRepository authenRepository, AuthenticationServices authenticationService, UserManager<AppUser> userManager, IJwtProvider jwtProvider)
         {
             this.mediatR = mediatR;
             this.authenRepository = authenRepository;
             this.authenticationService = authenticationService;
             _userManager = userManager;
+            this.jwtProvider = jwtProvider;
         }
 
         [HttpPost("login")]
@@ -84,12 +86,35 @@ namespace FoodShop.API.Controllers
         public async Task<IActionResult> RefreshToken(TokenDto tokenDto)
         {
            
-            var newTokens = await authenRepository.RefreshToken(tokenDto);
+            var newTokens = await jwtProvider.RefreshToken(tokenDto);
 
             // Set the new tokens in cookies
             authenticationService.SetTokenCookie(newTokens, HttpContext);
 
             return Ok(newTokens);
+        }
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                return BadRequest("Invalid email confirmation request.");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (result.Succeeded)
+            {
+                return Ok("Email confirmed successfully.");
+            }
+
+            return BadRequest("Email confirmation failed.");
         }
 
 

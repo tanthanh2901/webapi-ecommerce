@@ -1,10 +1,4 @@
-﻿using FoodShop.Domain.Entities;
-using FoodShop.Domain.Enum;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FoodShop.Domain.Enum;
 
 namespace FoodShop.Application.Dto
 {

@@ -17,11 +17,13 @@ using FoodShop.Persistence.Repositories;
 using FoodShop.Domain.Enum;
 using Microsoft.AspNetCore.Identity;
 using FoodShop.Application.Feature.User.Model;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FoodShop.API.Controllers
 {
     [Route("admin")]
     [ApiController]
+    [Authorize(Roles = "admin")]
 
     public class AdminController : Controller
     {

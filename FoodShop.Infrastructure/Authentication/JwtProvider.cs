@@ -18,16 +18,18 @@ namespace FoodShop.Infrastructure.Authentication
     {
         
         private readonly IConfiguration _configuration;
-        private readonly UserManager<AppUser> _userManager;
+        private readonly UserManager<AppUser> userManager;
 
         public JwtProvider(IConfiguration configuration, UserManager<AppUser> userManager)
         {
             _configuration = configuration;
-            _userManager = userManager;
+            this.userManager = userManager;
         }
 
         public async Task<TokenDto> Generate(AppUser user)
         {
+            var roles = await userManager.GetRolesAsync(user);
+
             var securityKey = new SymmetricSecurityKey(
                 Encoding.ASCII.GetBytes(_configuration["Jwt:SecretForKey"]));
             var signingCredentials = new SigningCredentials(
@@ -37,18 +39,22 @@ namespace FoodShop.Infrastructure.Authentication
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("username", user.UserName.ToString()),
 
-                new Claim("name", user.UserName), // User's full name
-                //new Claim("role", user.)), // User's role
-                new Claim("userId", user.Id.ToString()), // User ID
+                new Claim("userId", user.Id.ToString()),
             };
-  
+
+            foreach (var role in roles)
+            {
+                claimsForToken.Add(new Claim(ClaimTypes.Role, role));  // or use "role" as the claim type
+            }
+
             var jwtSecurityToken = new JwtSecurityToken(
                 _configuration["Jwt:Issuer"],
                 _configuration["Jwt:Audience"],
                 claimsForToken,
                 DateTime.UtcNow,
-                DateTime.UtcNow.AddMinutes(1),
+                DateTime.UtcNow.AddHours(1),
                 signingCredentials);
 
             var accessToken = new JwtSecurityTokenHandler()
@@ -58,7 +64,7 @@ namespace FoodShop.Infrastructure.Authentication
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
             return new TokenDto(accessToken, refreshToken);
         }
@@ -80,7 +86,7 @@ namespace FoodShop.Infrastructure.Authentication
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidateLifetime = true,
+                ValidateLifetime = false,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = _configuration["Jwt:Issuer"],
                 ValidAudience = _configuration["Jwt:Audience"],
@@ -91,7 +97,7 @@ namespace FoodShop.Infrastructure.Authentication
             SecurityToken securityToken;
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
             var jwtSecurityToken = securityToken as JwtSecurityToken;
-            if(jwtSecurityToken is null || !jwtSecurityToken.Header.Alg
+            if (jwtSecurityToken is null || !jwtSecurityToken.Header.Alg
                 .Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new SecurityException("Invalid token");
@@ -103,8 +109,9 @@ namespace FoodShop.Infrastructure.Authentication
         public async Task<TokenDto> RefreshToken(TokenDto tokenDto)
         {
             var principal = GetClaimsPrincipalFromExpireToken(tokenDto.accessToken);
-            var user = await _userManager.FindByNameAsync(principal.Identity.Name);
-            if (user == null || user.RefreshToken != tokenDto.refreshToken || 
+            var userName = principal.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
+            var user = await userManager.FindByNameAsync(userName);
+            if (user == null || user.RefreshToken != tokenDto.refreshToken ||
                 user.RefreshTokenExpiryTime < DateTime.Now)
             {
                 throw new Exception("Invalid or expired refresh token.");
