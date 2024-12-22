@@ -1,8 +1,7 @@
 # Use the official ASP.NET Core runtime for production
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+EXPOSE 7226
 
 # Use the .NET SDK for building the app
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build

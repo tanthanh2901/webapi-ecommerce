@@ -18,10 +18,15 @@ namespace FoodShop.Application.Profiles
             CreateMap<Product, ProductListDto>().ReverseMap();
             CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<Cart, CartDto>().ReverseMap();
-            CreateMap<CartItem, CartItemDto>().ReverseMap();
+            CreateMap<CartItem, CartItemDto>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product.ImageUrl))
+                .ReverseMap();
             CreateMap<AppUser, UserDto>().ReverseMap();
             CreateMap<Order, OrderDto>().ReverseMap();
-            CreateMap<OrderDetail, OrderDetailDto>().ReverseMap();
+            CreateMap<OrderDetail, OrderDetailDto>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product.ImageUrl))
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ReverseMap();
             CreateMap<Order, OrderDto>()
                 .ForMember(dest => dest.OrderDetailsDto, opt => opt.MapFrom(src => src.OrderDetail));
             CreateMap<Payment, PaymentDto>().ReverseMap();

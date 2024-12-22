@@ -8,6 +8,7 @@ namespace FoodShop.Persistence.Repositories
     {
         Task<Order> CreateOrderAsync(Order order);
         Task<List<OrderDto>> GetAllOrders(int userId);
+        Task<List<OrderDto>> AdminGetAllOrders();
         Task<OrderDto> GetOrderByIdAsync(int orderId);
         Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus status);
         Task<List<OrderDto>> GetOrderByStatus(int userId, OrderStatus status);

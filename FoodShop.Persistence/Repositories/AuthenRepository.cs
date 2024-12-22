@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using FoodShop.Application.Feature.Account.Register;
 using FoodShop.Application.Models.Mail;
+using FoodShop.Application.Contract.Infrastructure;
 
 namespace FoodShop.Infrastructure.Repositories
 {
@@ -16,18 +17,20 @@ namespace FoodShop.Infrastructure.Repositories
         private readonly UserManager<AppUser> userManager;
         private readonly SignInManager<AppUser> signInManager;
         private readonly ILogger<AuthenRepository> logger;
-
+        private readonly IEmailService emailService;
         public AuthenRepository(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             ILogger<AuthenRepository> logger,
-            FoodShopDbContext dbContext)
+            FoodShopDbContext dbContext,
+            IEmailService emailService)
             : base(dbContext)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.logger = logger;
             DbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            this.emailService = emailService;
         }
 
         private FoodShopDbContext DbContext { get; }
@@ -80,8 +83,18 @@ namespace FoodShop.Infrastructure.Repositories
                 registerResponse.UserId = user.Id;               
                 registerResponse.Message = "User created";
 
-                user.EmailConfirmed = true;
-                await userManager.UpdateAsync(user);
+                //user.EmailConfirmed = true;
+                //await userManager.UpdateAsync(user);
+
+                var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = $"https://localhost:7226/authentication/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+                
+                await emailService.SendEmail(new Email()
+                {
+                    To = registerModel.Email,
+                    Subject = "Confirm your email",
+                    Body = $"Please confirm your email by clicking <a href=\"{confirmationLink}\">here</a>."
+                });
 
                 await signInManager.SignInAsync(user, isPersistent: false);
             }

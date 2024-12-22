@@ -1,8 +1,10 @@
 ﻿using Amazon;
 using Amazon.S3;
 using FoodShop.Application.Contract.Infrastructure;
+using FoodShop.Application.Models.Mail;
 using FoodShop.Infrastructure.Authentication;
 using FoodShop.Infrastructure.AWS;
+using FoodShop.Infrastructure.Mail;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +33,11 @@ namespace FoodShop.Infrastructure
                 return new AmazonS3Client(s3Settings.AccessKey, s3Settings.SecretKey, config);
             });
             services.AddScoped<IS3Service, S3Service>();
-            
+
+            services.Configure<Smtp>(configuration.GetSection("Smtp"));
+            services.AddTransient<IEmailService, EmailServices>();
+
+
             return services;
         }
     }

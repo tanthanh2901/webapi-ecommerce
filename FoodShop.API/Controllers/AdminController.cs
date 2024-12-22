@@ -18,6 +18,7 @@ using FoodShop.Domain.Enum;
 using Microsoft.AspNetCore.Identity;
 using FoodShop.Application.Feature.User.Model;
 using Microsoft.AspNetCore.Authorization;
+using FoodShop.Application.Dto;
 
 namespace FoodShop.API.Controllers
 {
@@ -181,6 +182,13 @@ namespace FoodShop.API.Controllers
             var deleteCategoryCommand = new DeleteCategoryCommand() { CategoryId = categoryId };
             await mediatR.Send(deleteCategoryCommand);
             return NoContent();
+        }
+
+        [HttpGet("orders")]
+        public async Task<ActionResult<List<OrderDto>>> AdminGetAllOrders()
+        {
+            var orders = await orderRepository.AdminGetAllOrders();
+            return Ok(orders);
         }
 
         [HttpPost("orders/update")]

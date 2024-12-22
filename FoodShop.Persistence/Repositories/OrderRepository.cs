@@ -1,9 +1,7 @@
 ﻿using FoodShop.Application.Contract.Persistence;
 using FoodShop.Application.Dto;
-using FoodShop.Application.Feature.Notification;
 using FoodShop.Domain.Entities;
 using FoodShop.Domain.Enum;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoodShop.Persistence.Repositories
@@ -19,6 +17,32 @@ namespace FoodShop.Persistence.Repositories
             this.dbContext = dbContext;
             this.notificationRepository = notificationRepository;
         }
+
+        public async Task<List<OrderDto>> AdminGetAllOrders()
+        {
+            var orders = await dbContext.Orders
+                .Select(o => new OrderDto
+                {
+                    OrderId = o.OrderId,
+                    UserId = o.UserId,
+                    OrderDate = o.OrderDate,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    OrderDetailsDto = o.OrderDetail.Select(od => new OrderDetailDto
+                    {
+                        OrderId = od.OrderId,
+                        ProductId = od.ProductId,
+                        ProductName = od.Product.Name,
+                        ImageUrl = od.Product.ImageUrl,
+                        Quantity = od.Quantity,
+                        UnitPrice = od.UnitPrice
+                    }).ToList()
+                }).ToListAsync();
+
+            return orders;
+
+        }
+
         public async Task<Order> CreateOrderAsync(Order order)
         {
             await dbContext.Orders.AddAsync(order);
@@ -52,6 +76,8 @@ namespace FoodShop.Persistence.Repositories
                     {
                         OrderId = od.OrderId,
                         ProductId = od.ProductId,
+                        ProductName = od.Product.Name,
+                        ImageUrl = od.Product.ImageUrl,
                         Quantity = od.Quantity,
                         UnitPrice = od.UnitPrice
                     }).ToList()
